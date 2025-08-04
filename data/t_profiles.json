@@ -1,0 +1,147 @@
+[
+    {
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "name",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "email",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "looking_for_musician",
+      "data_type": "boolean",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "ready_for_cooperate",
+      "data_type": "boolean",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "instruments",
+      "data_type": "jsonb",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "description",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "equipments",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "performance_count",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "avatar_url",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "province",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "city",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "gender",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "birth_year",
+      "data_type": "smallint",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "music_experience",
+      "data_type": "smallint",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "display_name",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "address",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "phone",
+      "data_type": "character varying",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "instagram",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "is_premium",
+      "data_type": "boolean",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "is_complete",
+      "data_type": "boolean",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "category",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "roles",
+      "data_type": "ARRAY",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "website",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "social_links",
+      "data_type": "jsonb",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "is_admin",
+      "data_type": "boolean",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "views",
+      "data_type": "integer",
+      "is_nullable": "YES"
+    }
+  ]

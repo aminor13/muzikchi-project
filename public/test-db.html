@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Database Test</title>
+</head>
+<body>
+    <h1>Database Connection Test</h1>
+    <button onclick="testDB()">Test Database Connection</button>
+    <div id="result"></div>
+
+    <script>
+        async function testDB() {
+            try {
+                const response = await fetch('/api/test-db');
+                const data = await response.json();
+                document.getElementById('result').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<pre>Error: ' + error.message + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html> 

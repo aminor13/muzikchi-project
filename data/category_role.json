@@ -1,0 +1,88 @@
+[
+    {
+      "key": "person",
+      "label": "افراد",
+      "roles": [
+        {
+          "value": "vocalist",
+          "label": "خواننده"
+        },
+        {
+          "value": "musician",
+          "label": "نوازنده"
+        },
+        {
+          "value": "teacher",
+          "label": "مدرس"
+        },
+        {
+          "value": "songWriter",
+          "label": "آهنگساز"
+        },
+        {
+          "value": "lyricist",
+          "label": "ترانه‌سرا"
+        },
+        {
+          "value": "arranger",
+          "label": "تنظیم‌کننده"
+        }
+        
+      ]
+    },
+    {
+      "key": "crew",
+      "label": "تیم اجرایی",
+      "roles": [
+        {
+          "value": "soundEngineer",
+          "label": "صدابردار"
+        },
+        {
+          "value": "photographer",
+          "label": "عکاس/تصویربردار"
+        },
+        {
+          "value": "lighting",
+          "label": "نورپرداز"
+        },
+        {
+          "value": "director",
+          "label": "کارگردان (موزیک ویدئو)"
+        },
+        {
+          "value": "manager",
+          "label": "مدیر برنامه"
+        }
+        
+      ]
+    },
+    {
+      "key": "place",
+      "label": "مکان/فضا",
+      "roles": [
+        {
+          "value": "school",
+          "label": "آموزشگاه موسیقی"
+        },
+        {
+          "value": "recordingStudio",
+          "label": "استودیو ضبط"
+        },
+        {
+          "value": "rehearsalSpace",
+          "label": "فضای تمرین"
+        },
+        {
+          "value": "venue",
+          "label": "مکان اجرا"
+        }
+        
+      ]
+    },
+    {
+      "key": "band",
+      "label": "گروه موسیقی",
+      "roles": []
+    }
+]

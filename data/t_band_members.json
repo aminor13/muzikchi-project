@@ -1,0 +1,37 @@
+[
+  {
+    "column_name": "id",
+    "data_type": "uuid",
+    "is_nullable": "NO"
+  },
+  {
+    "column_name": "band_id",
+    "data_type": "uuid",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "member_id",
+    "data_type": "uuid",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "role",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "status",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES"
+  }
+]

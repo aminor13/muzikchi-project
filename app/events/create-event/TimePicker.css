@@ -1,0 +1,34 @@
+.react-time-picker {
+  width: 100%;
+}
+
+.react-time-picker__wrapper {
+  border: none !important;
+  padding: 0 !important;
+}
+
+.react-time-picker__inputGroup {
+  text-align: right;
+  direction: ltr;
+}
+
+.react-time-picker__inputGroup__input {
+  font-family: inherit;
+}
+
+.react-time-picker__inputGroup__amPm {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: transparent;
+  border: none;
+  font-family: inherit;
+}
+
+.react-time-picker__inputGroup__amPm option[value="am"] {
+  content: "قبل از ظهر";
+}
+
+.react-time-picker__inputGroup__amPm option[value="pm"] {
+  content: "بعد از ظهر";
+} 
