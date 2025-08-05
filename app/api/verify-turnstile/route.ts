@@ -11,8 +11,12 @@ export async function POST(request: NextRequest) {
     const secretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY
     
     if (!secretKey) {
+      console.error('Secret key not configured')
       return NextResponse.json({ success: false, error: 'Secret key not configured' }, { status: 500 })
     }
+
+    console.log('Verifying token:', token.substring(0, 10) + '...')
+    console.log('Secret key exists:', !!secretKey)
 
     // Verify the token with Cloudflare
     const verifyResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
@@ -24,6 +28,7 @@ export async function POST(request: NextRequest) {
     })
 
     const verifyData = await verifyResponse.json()
+    console.log('Cloudflare response:', verifyData)
 
     if (verifyData.success) {
       return NextResponse.json({ success: true })
