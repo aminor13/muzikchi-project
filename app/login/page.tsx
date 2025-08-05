@@ -79,14 +79,14 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
     
-    // Check Turnstile
-    if (!turnstileToken) {
-      setError('لطفاً کپچا را تکمیل کنید')
-      setLoading(false)
-      return
-    }
-
     try {
+      // Check Turnstile
+      if (!turnstileToken) {
+        setError('لطفاً کپچا را تکمیل کنید')
+        setLoading(false)
+        return
+      }
+
       // Verify Turnstile token
       const verifyResponse = await fetch('/api/verify-turnstile', {
         method: 'POST',
@@ -163,6 +163,7 @@ export default function LoginPage() {
         }
       }
     } catch (error) {
+      console.error('Login error:', error)
       setError('خطا در برقراری ارتباط با سرور')
     } finally {
       setLoading(false)
@@ -171,13 +172,11 @@ export default function LoginPage() {
 
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault()
-    console.log('Navigating to forgot password...')
     window.location.href = '/forgot-password'
   }
 
   const handleSignup = (e: React.MouseEvent) => {
     e.preventDefault()
-    console.log('Navigating to signup...')
     window.location.href = '/profile/create'
   }
 
@@ -259,11 +258,10 @@ export default function LoginPage() {
                 appearance="always"
                 language="fa"
                 onError={(error) => {
-                  console.error('Turnstile error:', error)
                   setError(`خطا در بارگذاری کپچا: ${error}`)
                 }}
                 onLoad={(widgetId) => {
-                  console.log('Turnstile loaded successfully:', widgetId)
+                  // Turnstile loaded successfully
                 }}
               />
             </div>
