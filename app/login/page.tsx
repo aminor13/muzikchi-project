@@ -3,7 +3,7 @@ import { useState, FormEvent, ChangeEvent, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { AuthError, AuthResponse } from '@supabase/supabase-js'
-import ReCAPTCHA from 'react-google-recaptcha'
+import Turnstile from 'react-turnstile'
 import { Eye, EyeOff } from 'lucide-react'
 
 interface LoginFormData {
@@ -13,24 +13,10 @@ interface LoginFormData {
 
 // Wrapper function for Supabase auth
 const signInSilently = async (supabase: any, email: string, password: string) => {
-  const originalError = window.console.error
-  try {
-    // Temporarily override console.error
-    window.console.error = (...args: any[]) => {
-      if (args[0]?.includes?.('400') && args[0]?.includes?.('supabase')) {
-        return // suppress the error
-      }
-      originalError.apply(console, args)
-    }
-
-    return await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-  } finally {
-    // Restore original console.error
-    window.console.error = originalError
-  }
+  return await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 }
 
 export default function LoginPage() {
@@ -38,47 +24,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
-  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || 'YOUR_RECAPTCHA_SITE_KEY'
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY || '0x4AAAAAABoOxgRSN5jLiz6e'
+  
+
   const [showPassword, setShowPassword] = useState(false)
-
-  // Add global error handler
-  useEffect(() => {
-    const errorHandler = (event: Event) => {
-      if (event instanceof ErrorEvent) {
-        // Check if the error is from Supabase auth
-        if (
-          event.error?.message?.includes?.('supabase') &&
-          event.error?.message?.includes?.('400')
-        ) {
-          event.preventDefault()
-          return false
-        }
-      }
-    }
-
-    const rejectionHandler = (event: PromiseRejectionEvent) => {
-      if (
-        event.reason?.message?.includes?.('supabase') &&
-        event.reason?.message?.includes?.('400')
-      ) {
-        event.preventDefault()
-      }
-    }
-
-    // Add error handlers
-    window.addEventListener('error', errorHandler)
-    window.addEventListener('unhandledrejection', rejectionHandler)
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('error', errorHandler)
-      window.removeEventListener('unhandledrejection', rejectionHandler)
-    }
-  }, [])
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
     const savedEmail = localStorage.getItem('login_email')
     if (savedEmail) setEmail(savedEmail)
   }, [])
@@ -90,6 +46,10 @@ export default function LoginPage() {
 
   const handleRecaptchaChange = (token: string | null) => {
     // setRecaptchaToken(token) // This state is no longer needed
+  }
+
+  const handleTurnstileVerify = (token: string) => {
+    setTurnstileToken(token)
   }
 
   const handleGoogleLogin = async (e: React.MouseEvent) => {
@@ -118,13 +78,32 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    // Check reCAPTCHA
-    // if (!recaptchaToken) { // This check is no longer needed
-    //   setError('لطفاً کپچا را تکمیل کنید')
-    //   setLoading(false)
-    //   return
-    // }
+    
+    // Check Turnstile
+    if (!turnstileToken) {
+      setError('لطفاً کپچا را تکمیل کنید')
+      setLoading(false)
+      return
+    }
+
     try {
+      // Verify Turnstile token
+      const verifyResponse = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token: turnstileToken }),
+      })
+
+      const verifyData = await verifyResponse.json()
+
+      if (!verifyData.success) {
+        setError('تایید کپچا ناموفق بود. لطفاً دوباره تلاش کنید')
+        setLoading(false)
+        return
+      }
+
       // اول چک می‌کنیم که فیلدها خالی نباشند
       if (!email || !password) {
         setError('لطفاً ایمیل و رمز عبور را وارد کنید')
@@ -156,6 +135,13 @@ export default function LoginPage() {
 
       // اگر لاگین موفق بود
       if (data?.user) {
+        // چک کردن تایید ایمیل
+        if (!data.user.email_confirmed_at) {
+          setError('لطفاً ابتدا ایمیل خود را تایید کنید')
+          setLoading(false)
+          return
+        }
+
         // چک کردن وضعیت پروفایل کاربر
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -197,6 +183,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-100">
@@ -255,6 +242,39 @@ export default function LoginPage() {
                 <div className="mr-3">
                   <div className="text-sm text-red-700">{error}</div>
                 </div>
+              </div>
+            </div>
+          )}
+
+
+          
+          {/* Turnstile Widget */}
+          {isClient && turnstileSiteKey && turnstileSiteKey !== '' ? (
+            <div className="flex justify-center">
+              <Turnstile
+                sitekey={turnstileSiteKey}
+                onVerify={handleTurnstileVerify}
+                theme="dark"
+                size="normal"
+                onError={(error) => {
+                  console.error('Turnstile error:', error)
+                  setError(`خطا در بارگذاری کپچا: ${error}`)
+                }}
+                onLoad={(widgetId) => {
+                  console.log('Turnstile loaded successfully:', widgetId)
+                }}
+              />
+            </div>
+          ) : !isClient ? (
+            <div className="flex justify-center">
+              <div className="bg-gray-600 p-4 rounded-md mb-4">
+                <p className="text-white text-sm">در حال بارگذاری...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="bg-red-700 p-4 rounded-md mb-4">
+                <p className="text-white text-sm">خطا: Site Key یافت نشد</p>
               </div>
             </div>
           )}

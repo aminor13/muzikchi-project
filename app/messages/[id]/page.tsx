@@ -62,13 +62,12 @@ export default async function MessagePage({ params }: MessagePageProps) {
   }
 
   try {
-    // Fetch the message and all replies
+    // Fetch the message and admin replies
     const { data: message, error } = await supabase
       .from('contact_messages')
       .select(`
         *,
-        admin_replies(id, reply_text, created_at, admin_id),
-        user_replies(id, reply_text, created_at, user_id)
+        admin_replies(id, reply_text, created_at, admin_id)
       `)
       .eq('id', resolvedParams.id)
       .eq('user_id', user.id)
@@ -79,23 +78,29 @@ export default async function MessagePage({ params }: MessagePageProps) {
       redirect('/messages');
     }
 
-    // Format all replies
-    const allReplies = [
-      ...(message.admin_replies || []).map((reply: AdminReply) => ({
-        ...reply,
-        formatted_time: formatDateTime(reply.created_at)
-      })),
-      ...(message.user_replies || []).map((reply: UserReply) => ({
-        ...reply,
-        formatted_time: formatDateTime(reply.created_at)
-      }))
-    ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    // Fetch user replies separately
+    const { data: userReplies, error: userRepliesError } = await supabase
+      .from('user_replies')
+      .select('*')
+      .eq('message_id', resolvedParams.id);
+
+    if (userRepliesError) {
+      console.error('Error fetching user replies:', userRepliesError);
+      // Continue without user replies rather than redirecting
+    }
 
     // Format the message with all replies
     const formattedMessage = {
       ...message,
       formatted_time: formatDateTime(message.created_at),
-      replies: allReplies
+      admin_replies: (message.admin_replies || []).map((reply: AdminReply) => ({
+        ...reply,
+        formatted_time: formatDateTime(reply.created_at)
+      })),
+      user_replies: (userReplies || []).map((reply: UserReply) => ({
+        ...reply,
+        formatted_time: formatDateTime(reply.created_at)
+      }))
     };
 
     return (

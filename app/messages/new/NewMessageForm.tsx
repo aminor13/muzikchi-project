@@ -36,24 +36,20 @@ export default function NewMessageForm({ user }: NewMessageFormProps) {
     setIsSubmitting(true);
 
     try {
-      // First, check if we can insert the message
-      const { data, error: insertError } = await supabase
+      // Use the same pattern as ContactForm which works
+      const { error: insertError } = await supabase
         .from('contact_messages')
-        .insert({
-          user_id: user.id,
-          subject: subject.trim(),
-          message: message.trim()
-        })
-        .select('id')
-        .single();
+        .insert([
+          {
+            user_id: user.id,
+            subject: subject.trim(),
+            message: message.trim()
+          }
+        ]);
 
       if (insertError) {
         console.error('Insert Error:', insertError);
         throw new Error(insertError.message);
-      }
-
-      if (!data?.id) {
-        throw new Error('پیام ایجاد شد اما شناسه آن دریافت نشد');
       }
 
       toast({
@@ -61,8 +57,8 @@ export default function NewMessageForm({ user }: NewMessageFormProps) {
         description: "پیام شما با موفقیت ثبت شد."
       });
 
-      // Use replace instead of push to prevent going back to the form
-      router.replace(`/messages/${data.id}`);
+      // Navigate to messages list instead of trying to get the specific message ID
+      router.replace('/messages');
       
     } catch (error: any) {
       console.error('Error details:', error);
@@ -77,7 +73,7 @@ export default function NewMessageForm({ user }: NewMessageFormProps) {
         description: errorMessage,
         variant: "destructive"
       });
-      
+    } finally {
       setIsSubmitting(false);
     }
   };

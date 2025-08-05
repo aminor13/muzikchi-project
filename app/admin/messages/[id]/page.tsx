@@ -73,25 +73,13 @@ export default async function MessagePage({ params }: MessagePageProps) {
   }
 
   try {
-    // First, fetch user replies directly to check if they exist
-    const { data: userReplies, error: userRepliesError } = await supabase
-      .from('user_replies')
-      .select('*')
-      .eq('message_id', id);
-
-    // console.log('Direct user replies query:', {
-    //   error: userRepliesError,
-    //   replies: userReplies
-    // });
-
-    // Fetch the message and all replies
+    // Fetch the message and admin replies
     const { data: message, error } = await supabase
       .from('contact_messages')
       .select(`
         *,
         user:profiles(id, name, email),
-        admin_replies(id, reply_text, created_at, admin_id),
-        user_replies(id, reply_text, created_at, user_id)
+        admin_replies(id, reply_text, created_at, admin_id)
       `)
       .eq('id', id)
       .single();
@@ -106,14 +94,16 @@ export default async function MessagePage({ params }: MessagePageProps) {
       redirect('/admin/messages');
     }
 
-    // console.log('Raw message data:', {
-    //   id: message.id,
-    //   message: message.message,
-    //   admin_replies: message.admin_replies,
-    //   user_replies: message.user_replies,
-    //   user_info: message.user,
-    //   separate_user_replies: userReplies
-    // });
+    // Fetch user replies separately
+    const { data: userReplies, error: userRepliesError } = await supabase
+      .from('user_replies')
+      .select('*')
+      .eq('message_id', id);
+
+    if (userRepliesError) {
+      console.error('Error fetching user replies:', userRepliesError);
+      // Continue without user replies rather than redirecting
+    }
 
     // Format times for the message and all replies
     const formattedMessage = {
@@ -128,18 +118,11 @@ export default async function MessagePage({ params }: MessagePageProps) {
         ...reply,
         formatted_time: formatDateTime(reply.created_at)
       })),
-      user_replies: (message.user_replies || []).map((reply: UserReply) => ({
+      user_replies: (userReplies || []).map((reply: UserReply) => ({
         ...reply,
         formatted_time: formatDateTime(reply.created_at)
       }))
     };
-
-    // console.log('Formatted message data:', {
-    //   id: formattedMessage.id,
-    //   initial_message: formattedMessage.message,
-    //   admin_replies: formattedMessage.admin_replies,
-    //   user_replies: formattedMessage.user_replies
-    // });
 
     return (
       <div className="min-h-screen bg-gray-900 py-8">
