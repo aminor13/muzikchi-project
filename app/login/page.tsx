@@ -251,19 +251,22 @@ export default function LoginPage() {
           {/* Turnstile Widget */}
           {isClient && turnstileSiteKey && turnstileSiteKey !== '' ? (
             <div className="flex justify-center">
-              <Turnstile
-                sitekey={turnstileSiteKey}
-                onVerify={handleTurnstileVerify}
-                theme="dark"
-                size="normal"
-                onError={(error) => {
-                  console.error('Turnstile error:', error)
-                  setError(`خطا در بارگذاری کپچا: ${error}`)
-                }}
-                onLoad={(widgetId) => {
-                  console.log('Turnstile loaded successfully:', widgetId)
-                }}
-              />
+              <div className="turnstile-wrapper bg-gray-800 p-4 rounded-lg border border-gray-600 shadow-lg hover:shadow-xl">
+                <Turnstile
+                  sitekey={turnstileSiteKey}
+                  onVerify={handleTurnstileVerify}
+                  theme="dark"
+                  size="normal"
+                  appearance="always"
+                  onError={(error) => {
+                    console.error('Turnstile error:', error)
+                    setError(`خطا در بارگذاری کپچا: ${error}`)
+                  }}
+                  onLoad={(widgetId) => {
+                    console.log('Turnstile loaded successfully:', widgetId)
+                  }}
+                />
+              </div>
             </div>
           ) : !isClient ? (
             <div className="flex justify-center">
