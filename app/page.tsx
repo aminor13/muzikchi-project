@@ -22,6 +22,12 @@ export default function Home() {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
+        // Check if email is confirmed first
+        if (!session.user.email_confirmed_at) {
+          router.replace('/verify-email')
+          return
+        }
+        
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('is_complete')

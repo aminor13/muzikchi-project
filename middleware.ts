@@ -67,6 +67,11 @@ export async function middleware(req: NextRequest) {
   if (user) {
     const { profile } = await checkProfile(user.id)
 
+    // If user's email is not confirmed, redirect to verify-email
+    if (!user.email_confirmed_at && !pathname.startsWith('/verify-email')) {
+      return NextResponse.redirect(new URL('/verify-email', req.url))
+    }
+
     // If profile doesn't exist or is not complete and not on complete profile page
     if ((!profile || !profile.is_complete) && !pathname.startsWith('/profile/complete')) {
       return NextResponse.redirect(new URL('/profile/complete', req.url))

@@ -141,8 +141,11 @@ export default function LoginPage() {
           return
         }
 
-        // اگر پروفایل کامل نبود، به صفحه تکمیل پروفایل برو
-        if (!profile || !profile.is_complete) {
+        // اگر ایمیل تایید نشده، به صفحه تایید ایمیل برو
+        if (!data.user.email_confirmed_at) {
+          router.push('/verify-email')
+        } else if (!profile || !profile.is_complete) {
+          // اگر پروفایل کامل نبود، به صفحه تکمیل پروفایل برو
           router.push('/profile/complete')
         } else {
           // در غیر این صورت به صفحه اصلی برو
