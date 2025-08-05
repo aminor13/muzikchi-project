@@ -199,15 +199,15 @@ export default function ProfileWizardStep1() {
           throw new Error('خطا در ایجاد پروفایل. لطفاً دوباره تلاش کنید.')
         }
 
-        // Show success message
+        // Show success message and redirect to email verification page
         setErrors(prev => ({
           ...prev,
           submit: 'ایمیل تایید برای شما ارسال شد. لطفاً ایمیل خود را تایید کنید.'
         }))
 
-        // Redirect to complete profile page after a short delay
+        // Redirect to email verification page after a short delay
         setTimeout(() => {
-          router.push('/profile/complete')
+          router.push('/verify-email')
         }, 2000)
       }
     } catch (error) {

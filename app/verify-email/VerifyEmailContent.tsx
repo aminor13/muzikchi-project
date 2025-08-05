@@ -20,7 +20,7 @@ export default function VerifyEmailContent() {
         const type = searchParams.get('type')
 
         if (!token || !type) {
-          setError('لینک تأیید ایمیل نامعتبر است.')
+          // Show success message instead of error when no token (user just signed up)
           setVerifying(false)
           return
         }
@@ -76,6 +76,41 @@ export default function VerifyEmailContent() {
         >
           بازگشت به صفحه ورود
         </button>
+      </div>
+    )
+  }
+
+  // Show success message when no token (user just signed up)
+  if (!searchParams.get('token')) {
+    return (
+      <div className="text-center">
+        <div className="mb-6">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+            <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-4">
+          ثبت‌نام موفقیت‌آمیز بود!
+        </h2>
+        <p className="text-gray-400 mb-6">
+          ایمیل تایید برای شما ارسال شد. لطفاً ایمیل خود را بررسی کنید و روی لینک تایید کلیک کنید.
+        </p>
+        <div className="space-y-3">
+          <button
+            onClick={() => router.push('/login')}
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            بازگشت به صفحه ورود
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            بررسی مجدد
+          </button>
+        </div>
       </div>
     )
   }
