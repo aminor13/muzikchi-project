@@ -80,6 +80,13 @@ export default function LoginPage() {
     setError(null)
     
     try {
+      // اول چک می‌کنیم که فیلدها خالی نباشند
+      if (!email || !password) {
+        setError('لطفاً ایمیل و رمز عبور را وارد کنید')
+        setLoading(false)
+        return
+      }
+
       // Check Turnstile
       if (!turnstileToken) {
         setError('لطفاً کپچا را تکمیل کنید')
@@ -104,36 +111,35 @@ export default function LoginPage() {
         return
       }
 
-      // اول چک می‌کنیم که فیلدها خالی نباشند
-      if (!email || !password) {
-        setError('لطفاً ایمیل و رمز عبور را وارد کنید')
+      // Test login with API route first
+      const testResponse = await fetch('/api/test-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
+      })
+
+      const testData = await testResponse.json()
+      
+      if (!testData.success) {
+        setError(`خطا در ورود: ${testData.error}`)
         setLoading(false)
         return
       }
 
-      // تلاش برای لاگین با استفاده از یک Promise wrapper
-      const { data, error: signInError } = await new Promise<AuthResponse>((resolve) => {
-        supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password.trim(),
-        }).then((result) => {
-          resolve(result)
-        }).catch((error) => {
-          resolve({ data: { user: null, session: null }, error })
-        })
+      // If API login works, try client-side login
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
       })
 
-      // اگر خطای لاگین داشتیم
       if (signInError) {
-        if (signInError instanceof AuthError && signInError.message.includes('Invalid')) {
-          setError('ایمیل یا رمز عبور اشتباه است')
-        } else {
-          setError('خطا در ورود به سیستم')
-        }
+        setError('خطا در ورود به سیستم')
+        setLoading(false)
         return
       }
 
-      // اگر لاگین موفق بود
       if (data?.user) {
         // چک کردن تایید ایمیل
         if (!data.user.email_confirmed_at) {
@@ -151,6 +157,7 @@ export default function LoginPage() {
 
         if (profileError) {
           setError('خطا در دریافت اطلاعات پروفایل')
+          setLoading(false)
           return
         }
 
