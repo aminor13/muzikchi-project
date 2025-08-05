@@ -16,21 +16,35 @@ export default function VerifyEmailContent() {
     const verifyEmail = async () => {
       try {
         const supabase = createClient()
+        const code = searchParams.get('code')
         const token = searchParams.get('token')
-        const type = searchParams.get('type')
 
-        if (!token || !type) {
+        if (!code && !token) {
           // Show success message instead of error when no token (user just signed up)
           setVerifying(false)
           return
         }
 
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash: token,
-          type: type as any
-        })
+        let verificationError = null
 
-        if (error) throw error
+        if (code) {
+          // Handle Supabase email confirmation
+          const { error } = await supabase.auth.exchangeCodeForSession(code)
+          if (error) {
+            verificationError = error
+          }
+        } else if (token) {
+          // Handle custom token verification
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: token,
+            type: 'signup' as any
+          })
+          if (error) {
+            verificationError = error
+          }
+        }
+
+        if (verificationError) throw verificationError
 
         // Update user context after successful verification
         const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -40,7 +54,7 @@ export default function VerifyEmailContent() {
         }
 
         // Redirect to profile page after successful verification
-        router.push('/profile')
+        router.push('/profile/complete')
       } catch (err) {
         console.error('Error verifying email:', err)
         setError('خطا در تأیید ایمیل. لطفاً دوباره تلاش کنید.')

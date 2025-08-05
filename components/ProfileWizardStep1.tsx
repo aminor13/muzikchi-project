@@ -149,14 +149,14 @@ export default function ProfileWizardStep1() {
         return
       }
 
-      // Sign up the user
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email.trim(),
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/verify-email`
-        }
-      })
+              // Sign up the user
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email.trim(),
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/verify-email`
+          }
+        })
 
       if (error) throw error
 
