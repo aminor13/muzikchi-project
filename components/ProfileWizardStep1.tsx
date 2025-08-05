@@ -343,37 +343,7 @@ export default function ProfileWizardStep1() {
           >
             {loading ? 'در حال ثبت‌نام...' : 'ثبت‌نام'}
           </button>
-          {/* دکمه ورود با گوگل */}
-          <div className="mt-6 flex justify-center">
-            <button
-              type="button"
-              className="w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 max-w-sm mx-auto"
-              onClick={async () => {
-                setLoading(true)
-                try {
-                  const { error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: { redirectTo: window.location.origin + '/' }
-                  })
-                  if (error) setErrors(prev => ({ ...prev, submit: 'خطا در ورود با گوگل' }))
-                } catch {
-                  setErrors(prev => ({ ...prev, submit: 'خطا در ورود با گوگل' }))
-                } finally {
-                  setLoading(false)
-                }
-              }}
-            >
-              <span className="flex flex-row items-center gap-2">
-                ورود با گوگل
-                <svg className="w-5 h-5" viewBox="0 0 533.5 544.3">
-                  <path fill="#4285f4" d="M533.5 278.4c0-17.4-1.5-34.1-4.3-50.4H272v95.3h147.5c-6.4 34.5-25.1 63.6-53.5 83.1v68.7h86.5c50.5-46.5 80-115 80-196.7z" />
-                  <path fill="#34a853" d="M272 544.3c72.6 0 133.5-23.9 178-64.8l-86.5-68.7c-24 16.1-54.6 25.7-91.5 25.7-70.3 0-129.9-47.5-151.3-111.3H33.6v69.9c44.8 88.4 136.7 149.2 238.4 149.2z" />
-                  <path fill="#fbbc04" d="M120.7 325.2c-10.4-30.6-10.4-63.7 0-94.3V161h-87.1C7.5 212.2 0 260.2 0 308.3s7.5 96.1 33.6 147.3l87.1-69.9z" />
-                  <path fill="#ea4335" d="M272 107.7c39.5-.6 77.2 14.2 106.1 41.7l79.4-79.4C412.5 24.2 343.4-1.1 272 0 170.3 0 78.4 60.8 33.6 149.2l87.1 69.9C142.1 155.2 201.7 107.7 272 107.7z" />
-                </svg>
-              </span>
-            </button>
-          </div>
+
         </form>
       </div>
     </div>
