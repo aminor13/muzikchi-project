@@ -43,18 +43,4 @@
   font-family: 'Vazirmatn', sans-serif;
 }
 
-/* Custom Turnstile Styles */
-.turnstile-wrapper {
-  transition: all 0.3s ease;
-}
-
-.turnstile-wrapper:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Customize Turnstile iframe */
-.turnstile-wrapper iframe {
-  border-radius: 8px;
-  border: none;
-} 
+ 
