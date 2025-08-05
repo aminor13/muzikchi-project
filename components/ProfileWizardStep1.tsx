@@ -68,7 +68,7 @@ export default function ProfileWizardStep1() {
     return Object.keys(newErrors).length === 0
   }
 
-  const waitForProfile = async (userId: string, maxAttempts = 5, delay = 1000): Promise<boolean> => {
+  const waitForProfile = async (userId: string, maxAttempts = 3, delay = 500): Promise<boolean> => {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const { data: profile, error } = await supabase
@@ -192,11 +192,18 @@ export default function ProfileWizardStep1() {
           }
         }
 
-        // Wait for profile to be available
-        const profileAvailable = await waitForProfile(data.user.id)
-        if (!profileAvailable) {
-          console.error('Profile was not found after multiple attempts')
-          throw new Error('خطا در ایجاد پروفایل. لطفاً دوباره تلاش کنید.')
+        // Wait for profile to be available (with timeout)
+        try {
+          const profileAvailable = await Promise.race([
+            waitForProfile(data.user.id),
+            new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000))
+          ])
+          
+          if (!profileAvailable) {
+            console.warn('Profile was not found after timeout, but continuing...')
+          }
+        } catch (error) {
+          console.warn('Error waiting for profile, but continuing...', error)
         }
 
         // Show success message and redirect to email verification page
