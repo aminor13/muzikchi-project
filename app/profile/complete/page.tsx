@@ -18,6 +18,11 @@ export default async function CompleteProfilePage() {
     redirect('/login')
   }
 
+  // Check if user's email is confirmed
+  if (!user.email_confirmed_at) {
+    redirect('/verify-email')
+  }
+
   // Get user's current profile data
   const { data: profile } = await supabase
     .from('profiles')

@@ -123,7 +123,7 @@ export default function LoginPage() {
       if (data?.user) {
         // چک کردن تایید ایمیل
         if (!data.user.email_confirmed_at) {
-          setError('لطفاً ابتدا ایمیل خود را تایید کنید')
+          setError('لطفاً ابتدا ایمیل خود را تایید کنید. ایمیل تایید برای شما ارسال شده است.')
           setLoading(false)
           return
         }
