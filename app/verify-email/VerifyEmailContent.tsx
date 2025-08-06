@@ -95,7 +95,7 @@ export default function VerifyEmailContent() {
   }
 
   // Show success message when no token (user just signed up)
-  if (!searchParams.get('token')) {
+  if (!searchParams.get('token') && !searchParams.get('code')) {
     return (
       <div className="text-center">
         <div className="mb-6">
