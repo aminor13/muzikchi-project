@@ -13,58 +13,24 @@ export default function VerifyEmailContent() {
   const [verifying, setVerifying] = useState(true)
 
   useEffect(() => {
-    const verifyEmail = async () => {
+    const checkUser = async () => {
+      setVerifying(true)
       try {
-        const supabase = createClient()
-        const code = searchParams.get('code')
-        const token = searchParams.get('token')
-
-        if (!code && !token) {
-          // Show success message instead of error when no token (user just signed up)
-          setVerifying(false)
-          return
+        const supabase = createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        if (user && user.email_confirmed_at) {
+          updateUser(user);
+          router.push('/profile/complete');
         }
-
-        let verificationError = null
-
-        if (code) {
-          // Handle Supabase email confirmation
-          const { error } = await supabase.auth.exchangeCodeForSession(code)
-          if (error) {
-            verificationError = error
-          }
-        } else if (token) {
-          // Handle custom token verification
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: 'signup' as any
-          })
-          if (error) {
-            verificationError = error
-          }
-        }
-
-        if (verificationError) throw verificationError
-
-        // Update user context after successful verification
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        if (userError) throw userError
-        if (user) {
-          updateUser(user)
-        }
-
-        // Redirect to profile page after successful verification
-        router.push('/profile/complete')
       } catch (err) {
-        console.error('Error verifying email:', err)
-        setError('خطا در تأیید ایمیل. لطفاً دوباره تلاش کنید.')
+        setError('خطا در بررسی وضعیت تایید ایمیل.');
       } finally {
-        setVerifying(false)
+        setVerifying(false);
       }
-    }
-
-    verifyEmail()
-  }, [searchParams, router, updateUser])
+    };
+    checkUser();
+  }, [router, updateUser]);
 
   if (verifying) {
     return (
@@ -94,8 +60,8 @@ export default function VerifyEmailContent() {
     )
   }
 
-  // Show success message when no token (user just signed up)
-  if (!searchParams.get('token') && !searchParams.get('code')) {
+  // Show success message when user is not yet confirmed
+  if (!verifying && !error) {
     return (
       <div className="text-center">
         <div className="mb-6">
@@ -109,7 +75,8 @@ export default function VerifyEmailContent() {
           ثبت‌نام موفقیت‌آمیز بود!
         </h2>
         <p className="text-gray-400 mb-6">
-          ایمیل تایید برای شما ارسال شد. لطفاً ایمیل خود را بررسی کنید و روی لینک تایید کلیک کنید.
+          اگر ایمیل خود را تایید کرده‌اید، به صورت خودکار به مرحله بعد منتقل می‌شوید.<br/>
+          در غیر این صورت، لطفاً ایمیل خود را بررسی و تایید کنید.
         </p>
         <div className="space-y-3">
           <button
