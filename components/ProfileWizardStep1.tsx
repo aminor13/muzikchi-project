@@ -154,7 +154,7 @@ export default function ProfileWizardStep1() {
           email: formData.email.trim(),
           password: formData.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/verify-email?code={TOKEN}`
+            emailRedirectTo: `https://muzikchi.ir/verify-email?code={TOKEN}`
           }
         })
 
