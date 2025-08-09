@@ -206,16 +206,11 @@ export default function ProfileWizardStep1() {
           console.warn('Error waiting for profile, but continuing...', error)
         }
 
-        // Show success message and redirect to email verification page
-        setErrors(prev => ({
-          ...prev,
-          submit: 'ایمیل تایید برای شما ارسال شد. لطفاً ایمیل خود را تایید کنید.'
-        }))
-
-        // Redirect to email verification page after a short delay
-        setTimeout(() => {
-          router.push('/verify-email')
-        }, 2000)
+        // Clear any previous errors and redirect to email verification page
+        setErrors({})
+        
+        // Redirect to email verification page immediately
+        router.push('/verify-email')
       }
     } catch (error) {
       console.error('Error signing up:', error)
