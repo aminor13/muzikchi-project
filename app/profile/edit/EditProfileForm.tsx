@@ -519,21 +519,36 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
 
   // افزودن لینک ویدئو
   const handleAddVideo = async () => {
-    if (!videoInput.trim()) return;
+    if (!videoInput.trim()) {
+      setError('لطفاً لینک ویدئو را وارد کنید');
+      return;
+    }
+    if (!videoTitle.trim()) {
+      setError('لطفاً عنوان ویدئو را وارد کنید');
+      return;
+    }
+    
     setGalleryLoading(true);
+    setError(null); // پاک کردن خطاهای قبلی
+    
     try {
-      await supabase.from('profile_gallery').insert({
+      const { error: insertError } = await supabase.from('profile_gallery').insert({
         profile_id: userId,
         type: 'video',
         url: videoInput.trim(),
         title: videoTitle.trim()
       });
+      
+      if (insertError) {
+        throw insertError;
+      }
+      
       setGalleryVideos(prev => [...prev, { url: videoInput.trim(), title: videoTitle.trim() }]);
       setVideoInput('');
       setVideoTitle('');
-      //console.log('video link added:', videoInput.trim());
+      console.log('video link added:', videoInput.trim());
     } catch (err) {
-      //console.error('خطا در افزودن ویدئو:', err, typeof err === 'object' ? JSON.stringify(err) : err);
+      console.error('خطا در افزودن ویدئو:', err);
       setError('خطا در افزودن ویدئو');
     } finally {
       setGalleryLoading(false);
@@ -1146,7 +1161,18 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
             <div className="flex gap-2 mb-2">
               <input type="text" value={videoInput} onChange={e => setVideoInput(e.target.value)} className="bg-gray-800 border border-gray-500 rounded px-2 py-1 flex-1 text-white" placeholder="https://..." />
               <input type="text" value={videoTitle} onChange={e => setVideoTitle(e.target.value)} placeholder="عنوان ویدئو" className="bg-gray-800 border border-gray-500 rounded px-2 py-1 flex-1 text-white" />
-              <button type="button" className="bg-white text-orange-500 px-3 py-1 rounded" onClick={handleAddVideo} disabled={galleryLoading}>افزودن</button>
+              <button 
+                type="button" 
+                className={`px-3 py-1 rounded font-medium transition-colors ${
+                  galleryLoading 
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                    : 'bg-white text-orange-500 hover:bg-orange-50'
+                }`} 
+                onClick={handleAddVideo} 
+                disabled={galleryLoading}
+              >
+                {galleryLoading ? 'در حال افزودن...' : 'افزودن'}
+              </button>
             </div>
             <ul>
               {galleryVideos.map((video, idx) => {
