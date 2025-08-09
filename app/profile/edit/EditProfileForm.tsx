@@ -1144,8 +1144,8 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
           <div>
             <label className="block text-sm font-medium text-gray-200 mb-1">لینک ویدئو (مثلاً یوتیوب)</label>
             <div className="flex gap-2 mb-2">
-              <input type="text" value={videoInput} onChange={e => setVideoInput(e.target.value)} className="bg-gray-800 border border-gray-500 rounded px-2 py-1 flex-1" placeholder="https://..." />
-              <input type="text" value={videoTitle} onChange={e => setVideoTitle(e.target.value)} placeholder="عنوان ویدئو" className="bg-gray-800 border border-gray-500 rounded px-2 py-1 flex-1" />
+              <input type="text" value={videoInput} onChange={e => setVideoInput(e.target.value)} className="bg-gray-800 border border-gray-500 rounded px-2 py-1 flex-1 text-white" placeholder="https://..." />
+              <input type="text" value={videoTitle} onChange={e => setVideoTitle(e.target.value)} placeholder="عنوان ویدئو" className="bg-gray-800 border border-gray-500 rounded px-2 py-1 flex-1 text-white" />
               <button type="button" className="bg-white text-orange-500 px-3 py-1 rounded" onClick={handleAddVideo} disabled={galleryLoading}>افزودن</button>
             </div>
             <ul>
@@ -1167,7 +1167,7 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
                     {thumbnail && <img src={thumbnail} alt="preview" className="w-16 h-10 object-cover rounded" />}
                     <div>
                       <div className="font-bold text-white ">{video.title}</div>
-                      <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-orange-600 underline">{video.url}</a>
+                      <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-orange-400 underline">{video.url}</a>
                     </div>
                     <button type="button" className="text-red-500" onClick={() => handleDeleteGalleryItem(video.url, 'video')}>حذف</button>
                   </li>

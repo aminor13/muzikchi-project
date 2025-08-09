@@ -22,6 +22,7 @@
     "jalali-convertor": "^1.1.9",
     "lucide-react": "^0.511.0",
     "next": "^15.4.2",
+    "nodemailer": "^7.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-google-recaptcha": "^3.1.0",

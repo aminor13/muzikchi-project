@@ -243,7 +243,7 @@ export default function LoginPage() {
               <Turnstile
                 sitekey={turnstileSiteKey}
                 onVerify={handleTurnstileVerify}
-                theme="dark"
+                theme="auto"
                 size="normal"
                 appearance="always"
                 language="fa"
