@@ -33,10 +33,11 @@ export default function AdvancedSearch() {
   const [name, setName] = useState("");
   const [isInitialized, setIsInitialized] = useState(false);
   const [instrument, setInstrument] = useState("");
-  const initializationRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitializingRef = useRef(false);
+  const isLoadingRef = useRef(false);
 
   const q = searchParams.get("q")?.trim();
 
@@ -57,24 +58,40 @@ export default function AdvancedSearch() {
   // تعداد پروفایل در هر صفحه
   const PAGE_SIZE = 12;
 
-  // تابع بارگذاری داده‌ها (برای infinite scroll) - using useCallback to prevent infinite loops
-  const fetchProfiles = useCallback(async (pageNum = 1, append = false) => {
-    if (loading) return; // Prevent concurrent requests
+  // تابع بارگذاری داده‌ها
+  const fetchProfiles = async (pageNum = 1, append = false) => {
+    if (isLoadingRef.current) {
+      console.log('Fetch blocked - already loading');
+      return;
+    }
     
+    console.log('Starting fetchProfiles:', { pageNum, append, filters: { name, province, city, role, category, instrument, gender, readyForCooperate, lookingForMusician } });
+    
+    isLoadingRef.current = true;
     setLoading(true);
     setError(null);
     
-    // Add timeout to prevent infinite loading
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Set timeout
     timeoutRef.current = setTimeout(() => {
+      console.log('Fetch timeout triggered');
+      isLoadingRef.current = false;
       setLoading(false);
       setError("درخواست با مشکل مواجه شد. لطفاً دوباره تلاش کنید.");
-    }, 30000); // 30 second timeout
+    }, 30000);
     
     try {
+      console.log('Creating Supabase client...');
       const supabase = createClient();
+      
+      console.log('Building query...');
       let query = supabase
         .from("profiles")
-        .select("id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician, profile_instruments:profile_instruments(instrument_id)", { count: "exact" })
+        .select("id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician", { count: "exact" })
         .eq('is_complete', true)
         .range((pageNum - 1) * PAGE_SIZE, pageNum * PAGE_SIZE - 1);
       
@@ -84,14 +101,41 @@ export default function AdvancedSearch() {
       if (role) query = query.contains("roles", [role]);
       if (category === 'band') query = query.eq("category", 'band');
       if (instrument) {
-        query = query.eq("profile_instruments.instrument_id", instrument);
+        console.log('Applying instrument filter:', instrument);
+        console.log('Instrument type:', typeof instrument);
+        
+        // Filter profiles that have the specified instrument
+        const { data: instrumentProfiles, error: instrumentError } = await supabase
+          .from('profile_instruments')
+          .select('profile_id')
+          .eq('instrument_id', instrument)
+          .eq('type', 'musician');
+        
+        console.log('Instrument query result:', { instrumentProfiles, instrumentError });
+        
+        if (!instrumentError && instrumentProfiles && instrumentProfiles.length > 0) {
+          const profileIds = instrumentProfiles.map(p => p.profile_id);
+          console.log('Found profiles with instrument:', profileIds);
+          query = query.in('id', profileIds);
+        } else {
+          console.log('No profiles found with instrument:', instrument);
+          // Return empty results if no profiles have this instrument
+          setResults([]);
+          setHasMore(false);
+          return;
+        }
       }
       if (gender) query = query.eq("gender", gender);
       if (readyForCooperate) query = query.eq("ready_for_cooperate", true);
       if (lookingForMusician) query = query.eq("looking_for_musician", true);
       
+      console.log('Final query before execution:', query);
+      console.log('Executing query...');
       const { data, error: supabaseError, count } = await query;
       
+      console.log('Query result:', { dataLength: data?.length, error: supabaseError, count });
+      
+      // Clear timeout on success
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -103,9 +147,9 @@ export default function AdvancedSearch() {
         } else {
           setResults(data || []);
         }
-        // اگر تعداد داده‌های دریافتی کمتر از PAGE_SIZE بود یعنی داده‌ای برای صفحه بعد نیست
         setHasMore((data?.length || 0) === PAGE_SIZE);
-        setRetryCount(0); // Reset retry count on success
+        setRetryCount(0);
+        console.log('Fetch successful:', { resultsCount: data?.length, hasMore: (data?.length || 0) === PAGE_SIZE });
       } else {
         console.error('Supabase error:', supabaseError);
         setResults([]);
@@ -122,12 +166,14 @@ export default function AdvancedSearch() {
       setHasMore(false);
       setError("خطا در اتصال به سرور. لطفاً دوباره تلاش کنید.");
     } finally {
+      isLoadingRef.current = false;
       setLoading(false);
+      console.log('Fetch completed, loading set to false');
     }
-  }, [loading, name, province, city, role, category, instrument, gender, readyForCooperate, lookingForMusician]);
+  };
 
   // Retry function
-  const retryFetch = useCallback(() => {
+  const retryFetch = () => {
     if (retryCount >= 3) {
       setError("تعداد تلاش‌های مجدد به حداکثر رسیده. لطفاً صفحه را رفرش کنید.");
       return;
@@ -135,76 +181,83 @@ export default function AdvancedSearch() {
     setRetryCount(prev => prev + 1);
     setPage(1);
     fetchProfiles(1, false);
-  }, [fetchProfiles, retryCount]);
+  };
 
   // تابع بارگذاری صفحه بعد
-  const fetchNext = useCallback(() => {
-    if (!loading && hasMore) {
+  const fetchNext = () => {
+    if (!isLoadingRef.current && hasMore) {
       const nextPage = page + 1;
       setPage(nextPage);
       fetchProfiles(nextPage, true);
     }
-  }, [loading, hasMore, page, fetchProfiles]);
+  };
 
-  // Single useEffect for initialization and URL parameter handling
+  // Single useEffect for all initialization and data fetching
   useEffect(() => {
-    if (initializationRef.current) return; // Prevent multiple initializations
+    if (isInitializingRef.current) return;
+    isInitializingRef.current = true;
 
-    const initializeFromURL = () => {
-      const provinceParam = searchParams.get("province");
-      const cityParam = searchParams.get("city");
-      const roleParam = searchParams.get("role");
-      const genderParam = searchParams.get("gender");
-      const categoryParam = searchParams.get("category");
-      const nameParam = searchParams.get("name");
-      const readyParam = searchParams.get("ready");
-      const lookingParam = searchParams.get("looking");
-      const instrumentParam = searchParams.get("instrument");
-      const showSearchFormParam = searchParams.get("showSearchForm");
+    const initializeAndFetch = async () => {
+      try {
+        console.log('Starting initialization...');
+        
+        // Initialize from URL parameters
+        const provinceParam = searchParams.get("province");
+        const cityParam = searchParams.get("city");
+        const roleParam = searchParams.get("role");
+        const genderParam = searchParams.get("gender");
+        const categoryParam = searchParams.get("category");
+        const nameParam = searchParams.get("name");
+        const readyParam = searchParams.get("ready");
+        const lookingParam = searchParams.get("looking");
+        const instrumentParam = searchParams.get("instrument");
+        const showSearchFormParam = searchParams.get("showSearchForm");
 
-      // Set all states at once
-      setProvince(provinceParam || "");
-      setCity(cityParam || "");
-      setRole(roleParam || "");
-      setGender(genderParam || "");
-      setCategory(categoryParam || "");
-      setName(nameParam || "");
-      setReadyForCooperate(readyParam === 'true');
-      setLookingForMusician(lookingParam === 'true');
-      setInstrument(instrumentParam || "");
+        console.log('URL parameters loaded:', { provinceParam, cityParam, roleParam, genderParam, categoryParam, nameParam });
 
-      // Always show search form if showSearchForm parameter is present
-      if (showSearchFormParam === 'true') {
-        setShowSearchForm(true);
+        // Set all states at once
+        setProvince(provinceParam || "");
+        setCity(cityParam || "");
+        setRole(roleParam || "");
+        setGender(genderParam || "");
+        setCategory(categoryParam || "");
+        setName(nameParam || "");
+        setReadyForCooperate(readyParam === 'true');
+        setLookingForMusician(lookingParam === 'true');
+        setInstrument(instrumentParam || "");
+
+        if (showSearchFormParam === 'true') {
+          setShowSearchForm(true);
+        }
+
+        console.log('States set, marking as initialized...');
+        setIsInitialized(true);
+        
+        // Fetch initial data
+        console.log('Starting initial data fetch...');
+        setPage(1);
+        await fetchProfiles(1, false);
+        console.log('Initial data fetch completed');
+      } catch (error) {
+        console.error('Initialization error:', error);
+        setError("خطا در مقداردهی اولیه. لطفاً صفحه را رفرش کنید.");
       }
-
-      initializationRef.current = true;
-      setIsInitialized(true);
     };
 
-    initializeFromURL();
-  }, [searchParams]);
-
-  // Separate useEffect for data fetching after initialization
-  useEffect(() => {
-    if (isInitialized) {
-      setPage(1);
-      fetchProfiles(1, false);
-    }
-  }, [isInitialized]);
+    initializeAndFetch();
+  }, [searchParams]); // Removed fetchProfiles from dependencies
 
   // Handle filter changes after initialization
   useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && !isInitializingRef.current) {
       setPage(1);
       fetchProfiles(1, false);
     }
-  }, [isInitialized, province, city, role, gender, category, name, readyForCooperate, lookingForMusician, instrument]);
+  }, [isInitialized, province, city, role, gender, category, name, readyForCooperate, lookingForMusician, instrument]); // Removed fetchProfiles from dependencies
 
-  // Cleanup effect to clear timeouts
+  // Cleanup effect
   useEffect(() => {
     return () => {
-      // Clear any pending timeouts when component unmounts
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
