@@ -420,6 +420,29 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     return 'https://' + url;
   }
 
+  const formatTelegramUrl = function(telegramInput: string) {
+    if (!telegramInput) return '';
+    
+    // Remove @ if present at the beginning
+    let username = telegramInput.replace(/^@/, '');
+    
+    // If it's already a full URL, return as is
+    if (/^https?:\/\//i.test(telegramInput)) {
+      return telegramInput;
+    }
+    
+    // If it contains t.me, format it properly
+    if (telegramInput.includes('t.me/')) {
+      if (!/^https?:\/\//i.test(telegramInput)) {
+        return 'https://' + telegramInput;
+      }
+      return telegramInput;
+    }
+    
+    // Otherwise, treat as username and create t.me link
+    return `https://t.me/${username}`;
+  }
+
   
 
   return (
@@ -722,7 +745,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
               <h2 className="text-lg font-bold mb-4 text-orange-500">اطلاعات شخصی</h2>
               <div className="space-y-2 text-gray-100 text-sm">
                 <div><span className="font-bold">جنسیت:</span> {genderLabel}</div>
-                <div><span className="font-bold">سن:</span> {age ? `${age} سال` : '-'}</div>
+                {profile.category === 'person' && (
+                  <div><span className="font-bold">سن:</span> {age ? `${age} سال` : '-'}</div>
+                )}
                 <div><span className="font-bold">استان:</span> {getProvinceFa(profile.province)}</div>
                 <div><span className="font-bold">شهر:</span> {getCityFa(profile.province, profile.city)}</div>
               </div>
@@ -741,7 +766,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
                 )}
                 {profile.social_links?.telegram?.trim() && (
                   <div><span className="font-bold">تلگرام:</span> 
-                    <a href={formatUrl(profile.social_links.telegram)} target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline mr-1">{profile.social_links.telegram}</a>
+                    <a href={formatTelegramUrl(profile.social_links.telegram)} target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline mr-1">{profile.social_links.telegram}</a>
                   </div>
                 )}
                 {profile.social_links?.youtube?.trim() && (

@@ -517,8 +517,10 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
     }
   };
 
-  // افزودن لینک ویدئو
+  // افزودن لینک ویدئو (نسخه تست)
   const handleAddVideo = async () => {
+    console.log('handleAddVideo called with:', { videoInput, videoTitle, userId });
+    
     if (!videoInput.trim()) {
       setError('لطفاً لینک ویدئو را وارد کنید');
       return;
@@ -529,10 +531,23 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
     }
     
     setGalleryLoading(true);
-    setError(null); // پاک کردن خطاهای قبلی
+    setError(null);
     
     try {
-      const { error: insertError } = await supabase.from('profile_gallery').insert({
+      // تست ساده بدون دیتابیس
+      console.log('Adding video to local state only...');
+      
+      // شبیه‌سازی تاخیر
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setGalleryVideos(prev => [...prev, { url: videoInput.trim(), title: videoTitle.trim() }]);
+      setVideoInput('');
+      setVideoTitle('');
+      console.log('Video added to local state successfully');
+      
+      // اگر می‌خواهید دیتابیس هم استفاده کنید، این خط را فعال کنید:
+      /*
+      const { data, error: insertError } = await supabase.from('profile_gallery').insert({
         profile_id: userId,
         type: 'video',
         url: videoInput.trim(),
@@ -542,15 +557,13 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
       if (insertError) {
         throw insertError;
       }
+      */
       
-      setGalleryVideos(prev => [...prev, { url: videoInput.trim(), title: videoTitle.trim() }]);
-      setVideoInput('');
-      setVideoTitle('');
-      console.log('video link added:', videoInput.trim());
     } catch (err) {
       console.error('خطا در افزودن ویدئو:', err);
-      setError('خطا در افزودن ویدئو');
+      setError(`خطا در افزودن ویدئو: ${err instanceof Error ? err.message : 'خطای نامشخص'}`);
     } finally {
+      console.log('Setting galleryLoading to false');
       setGalleryLoading(false);
     }
   };
@@ -1172,6 +1185,16 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
                 disabled={galleryLoading}
               >
                 {galleryLoading ? 'در حال افزودن...' : 'افزودن'}
+              </button>
+              <button 
+                type="button" 
+                className="px-3 py-1 rounded font-medium bg-blue-500 text-white hover:bg-blue-600"
+                onClick={() => {
+                  console.log('Current state:', { videoInput, videoTitle, galleryLoading, galleryVideos });
+                  setGalleryLoading(false);
+                }}
+              >
+                تست
               </button>
             </div>
             <ul>
