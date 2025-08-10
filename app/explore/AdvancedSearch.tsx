@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import provinceCityData from "@/data/province_city.json";
 import roleData from "@/data/category_role.json";
-import { createClient } from "@/utils/supabase/client";
+import { createClient, retryRequest } from "@/utils/supabase/client";
 import { useSearchParams } from "next/navigation";
 import instrumentGroups from '@/data/instruments.js';
 import Link from "next/link";
@@ -88,89 +88,100 @@ export default function AdvancedSearch() {
       console.log('Creating Supabase client...');
       const supabase = createClient();
       
-      // First, test basic connection with a simple query
-      console.log('Testing basic connection...');
-      const { data: testData, error: testError } = await supabase
-        .from("profiles")
-        .select("id")
-        .limit(1);
+      // Use retry logic for all database operations
+      const executeQuery = async () => {
+        // First, test basic connection with a simple query
+        console.log('Testing basic connection...');
+        const { data: testData, error: testError } = await supabase
+          .from("profiles")
+          .select("id")
+          .limit(1);
+        
+        console.log('Basic connection test result:', { testData, testError });
+        
+        if (testError) {
+          console.error('Basic connection failed:', testError);
+          throw new Error('خطا در اتصال به دیتابیس');
+        }
+        
+        console.log('Building query...');
+        let query = supabase
+          .from("profiles")
+          .select("id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician")
+          .eq('is_complete', true)
+          .limit(PAGE_SIZE); // Use limit instead of range for better performance
+        
+        // Test count query first
+        console.log('Testing count query...');
+        const { count: totalCount, error: countError } = await supabase
+          .from("profiles")
+          .select("*", { count: "exact", head: true })
+          .eq('is_complete', true);
+        
+        console.log('Count query result:', { totalCount, countError });
+        
+        if (countError) {
+          console.error('Count query failed:', countError);
+          throw new Error('خطا در دریافت تعداد پروفایل‌ها');
+        }
+        
+        console.log('Total profiles count:', totalCount);
+        
+        // Apply basic filters only
+        if (name) {
+          console.log('Applying name filter:', name);
+          query = query.or(`name.ilike.%${name}%,display_name.ilike.%${name}%`);
+        }
+        if (province) {
+          console.log('Applying province filter:', province);
+          query = query.eq("province", province);
+        }
+        if (city) {
+          console.log('Applying city filter:', city);
+          query = query.eq("city", city);
+        }
+        if (role) {
+          console.log('Applying role filter:', role);
+          query = query.contains("roles", [role]);
+        }
+        if (category === 'band') {
+          console.log('Applying band filter');
+          query = query.eq("category", 'band');
+        }
+        if (gender) {
+          console.log('Applying gender filter:', gender);
+          query = query.eq("gender", gender);
+        }
+        if (readyForCooperate) {
+          console.log('Applying ready for cooperate filter');
+          query = query.eq("ready_for_cooperate", true);
+        }
+        if (lookingForMusician) {
+          console.log('Applying looking for musician filter');
+          query = query.eq("looking_for_musician", true);
+        }
+        
+        // Skip instrument filter for now to simplify
+        if (instrument) {
+          console.log('Skipping instrument filter for now to simplify query');
+        }
+        
+        console.log('Final query before execution:', query);
+        console.log('Executing query...');
+        const { data, error: supabaseError, count } = await query;
+        
+        console.log('Query result:', { dataLength: data?.length, error: supabaseError, count });
+        
+        if (supabaseError) {
+          console.error('Supabase error:', supabaseError);
+          throw new Error('خطا در دریافت اطلاعات');
+        }
+        
+        return { data, count };
+      };
       
-      console.log('Basic connection test result:', { testData, testError });
-      
-      if (testError) {
-        console.error('Basic connection failed:', testError);
-        setError("خطا در اتصال به دیتابیس. لطفاً دوباره تلاش کنید.");
-        return;
-      }
-      
-      console.log('Building query...');
-      let query = supabase
-        .from("profiles")
-        .select("id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician")
-        .eq('is_complete', true)
-        .limit(PAGE_SIZE); // Use limit instead of range for better performance
-      
-      // Test count query first
-      console.log('Testing count query...');
-      const { count: totalCount, error: countError } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq('is_complete', true);
-      
-      console.log('Count query result:', { totalCount, countError });
-      
-      if (countError) {
-        console.error('Count query failed:', countError);
-        setError("خطا در دریافت تعداد پروفایل‌ها. لطفاً دوباره تلاش کنید.");
-        return;
-      }
-      
-      console.log('Total profiles count:', totalCount);
-      
-      // Apply basic filters only
-      if (name) {
-        console.log('Applying name filter:', name);
-        query = query.or(`name.ilike.%${name}%,display_name.ilike.%${name}%`);
-      }
-      if (province) {
-        console.log('Applying province filter:', province);
-        query = query.eq("province", province);
-      }
-      if (city) {
-        console.log('Applying city filter:', city);
-        query = query.eq("city", city);
-      }
-      if (role) {
-        console.log('Applying role filter:', role);
-        query = query.contains("roles", [role]);
-      }
-      if (category === 'band') {
-        console.log('Applying band filter');
-        query = query.eq("category", 'band');
-      }
-      if (gender) {
-        console.log('Applying gender filter:', gender);
-        query = query.eq("gender", gender);
-      }
-      if (readyForCooperate) {
-        console.log('Applying ready for cooperate filter');
-        query = query.eq("ready_for_cooperate", true);
-      }
-      if (lookingForMusician) {
-        console.log('Applying looking for musician filter');
-        query = query.eq("looking_for_musician", true);
-      }
-      
-      // Skip instrument filter for now to simplify
-      if (instrument) {
-        console.log('Skipping instrument filter for now to simplify query');
-      }
-      
-      console.log('Final query before execution:', query);
-      console.log('Executing query...');
-      const { data, error: supabaseError, count } = await query;
-      
-      console.log('Query result:', { dataLength: data?.length, error: supabaseError, count });
+      // Use retry logic
+      const { data, count } = await retryRequest(executeQuery, 3, 1000);
       
       // Clear timeout on success
       if (timeoutRef.current) {
@@ -178,21 +189,15 @@ export default function AdvancedSearch() {
         timeoutRef.current = null;
       }
       
-      if (!supabaseError) {
-        if (append) {
-          setResults(prev => [...prev, ...(data || [])]);
-        } else {
-          setResults(data || []);
-        }
-        setHasMore((data?.length || 0) === PAGE_SIZE);
-        setRetryCount(0);
-        console.log('Fetch successful:', { resultsCount: data?.length, hasMore: (data?.length || 0) === PAGE_SIZE });
+      if (append) {
+        setResults(prev => [...prev, ...(data || [])]);
       } else {
-        console.error('Supabase error:', supabaseError);
-        setResults([]);
-        setHasMore(false);
-        setError("خطا در دریافت اطلاعات. لطفاً دوباره تلاش کنید.");
+        setResults(data || []);
       }
+      setHasMore((data?.length || 0) === PAGE_SIZE);
+      setRetryCount(0);
+      console.log('Fetch successful:', { resultsCount: data?.length, hasMore: (data?.length || 0) === PAGE_SIZE });
+      
     } catch (err) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -201,7 +206,7 @@ export default function AdvancedSearch() {
       console.error('Fetch error:', err);
       setResults([]);
       setHasMore(false);
-      setError("خطا در اتصال به سرور. لطفاً دوباره تلاش کنید.");
+      setError(err instanceof Error ? err.message : "خطا در اتصال به سرور. لطفاً دوباره تلاش کنید.");
     } finally {
       isLoadingRef.current = false;
       setLoading(false);
@@ -218,6 +223,24 @@ export default function AdvancedSearch() {
     setRetryCount(prev => prev + 1);
     setPage(1);
     fetchProfiles(1, false);
+  };
+
+  // Clear cache and reset function
+  const clearCacheAndReset = () => {
+    console.log('Clearing cache and resetting...');
+    setResults([]);
+    setError(null);
+    setRetryCount(0);
+    setPage(1);
+    setHasMore(true);
+    isLoadingRef.current = false;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    // Reset Supabase client
+    const { resetClient } = require('@/utils/supabase/client');
+    resetClient();
   };
 
   // تابع بارگذاری صفحه بعد
@@ -237,6 +260,17 @@ export default function AdvancedSearch() {
     const initializeAndFetch = async () => {
       try {
         console.log('Starting initialization...');
+        
+        // Check session first
+        const supabase = createClient();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          // Don't throw error for session issues, just log them
+        } else {
+          console.log('Session status:', session ? 'Active' : 'No session');
+        }
         
         // Initialize from URL parameters
         const provinceParam = searchParams.get("province");
@@ -302,19 +336,57 @@ export default function AdvancedSearch() {
     };
   }, []);
 
+  // Monitor authentication status
+  useEffect(() => {
+    const supabase = createClient();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: any) => {
+      console.log('Auth state changed in component:', event, session?.user?.id);
+      
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        // Clear cache when auth state changes
+        clearCacheAndReset();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <div className="max-w-5xl mx-auto px-4">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-white">اعضاء</h1>
-        <button
-          onClick={() => setShowSearchForm(!showSearchForm)}
-          className="flex items-center gap-2 bg-white text-orange-500 hover:bg-orange-50 px-4 py-2 rounded-lg font-medium transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-          </svg>
-          {showSearchForm ? 'بستن فیلترها' : 'جستجوی پیشرفته'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              console.log('Manual connection test...');
+              const supabase = createClient();
+              supabase.from('profiles').select('id').limit(1).then((result: any) => {
+                console.log('Manual test result:', result);
+                if (result.error) {
+                  setError('خطا در تست اتصال: ' + result.error.message);
+                } else {
+                  setError(null);
+                  alert('اتصال موفق است!');
+                }
+              });
+            }}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+          >
+            تست اتصال
+          </button>
+          <button
+            onClick={() => setShowSearchForm(!showSearchForm)}
+            className="flex items-center gap-2 bg-white text-orange-500 hover:bg-orange-50 px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+            {showSearchForm ? 'بستن فیلترها' : 'جستجوی پیشرفته'}
+          </button>
+        </div>
       </div>
 
       {/* Active Filters */}
@@ -546,12 +618,20 @@ export default function AdvancedSearch() {
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">{error}</div>
             {retryCount >= 3 ? (
-              <button
-                onClick={() => window.location.reload()}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors"
-              >
-                رفرش صفحه
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  رفرش صفحه
+                </button>
+                <button
+                  onClick={clearCacheAndReset}
+                  className="block mx-auto bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  پاک کردن کش
+                </button>
+              </div>
             ) : (
               <button
                 onClick={retryFetch}

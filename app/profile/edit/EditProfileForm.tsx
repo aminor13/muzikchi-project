@@ -277,12 +277,12 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
         .eq('profile_id', userId);
 
       if (!error && data) {
-        setMusicianInstruments(data.filter(i => i.type === 'musician').map(i => ({
+        setMusicianInstruments(data.filter((i: any) => i.type === 'musician').map((i: any) => ({
           instrument: i.instrument_id,
           skill: i.skill
         })));
-        setTeacherInstruments(data.filter(i => i.type === 'teacher').map(i => i.instrument_id));
-        setSchoolInstruments(data.filter(i => i.type === 'school').map(i => i.instrument_id));
+        setTeacherInstruments(data.filter((i: any) => i.type === 'teacher').map((i: any) => i.instrument_id));
+        setSchoolInstruments(data.filter((i: any) => i.type === 'school').map((i: any) => i.instrument_id));
       }
     };
     if (userId) fetchInstruments();
@@ -295,8 +295,8 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
         .select('*')
         .eq('profile_id', userId);
       if (!error && data) {
-        setGalleryImages(data.filter(i => i.type === 'image').map(i => i.url));
-        setGalleryVideos(data.filter(i => i.type === 'video').map(i => ({
+        setGalleryImages(data.filter((i: any) => i.type === 'image').map((i: any) => i.url));
+        setGalleryVideos(data.filter((i: any) => i.type === 'video').map((i: any) => ({
           url: i.url,
           title: i.title
         })));
@@ -517,7 +517,7 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
     }
   };
 
-  // افزودن لینک ویدئو (نسخه تست)
+  // افزودن لینک ویدئو
   const handleAddVideo = async () => {
     console.log('handleAddVideo called with:', { videoInput, videoTitle, userId });
     
@@ -534,19 +534,8 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
     setError(null);
     
     try {
-      // تست ساده بدون دیتابیس
-      console.log('Adding video to local state only...');
+      console.log('Inserting video to database...');
       
-      // شبیه‌سازی تاخیر
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setGalleryVideos(prev => [...prev, { url: videoInput.trim(), title: videoTitle.trim() }]);
-      setVideoInput('');
-      setVideoTitle('');
-      console.log('Video added to local state successfully');
-      
-      // اگر می‌خواهید دیتابیس هم استفاده کنید، این خط را فعال کنید:
-      /*
       const { data, error: insertError } = await supabase.from('profile_gallery').insert({
         profile_id: userId,
         type: 'video',
@@ -554,10 +543,18 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
         title: videoTitle.trim()
       });
       
+      console.log('Database response:', { data, error: insertError });
+      
       if (insertError) {
+        console.error('Database error:', insertError);
         throw insertError;
       }
-      */
+      
+      console.log('Video added to database successfully, updating local state...');
+      setGalleryVideos(prev => [...prev, { url: videoInput.trim(), title: videoTitle.trim() }]);
+      setVideoInput('');
+      setVideoTitle('');
+      console.log('Video added to local state successfully');
       
     } catch (err) {
       console.error('خطا در افزودن ویدئو:', err);
@@ -1185,16 +1182,6 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
                 disabled={galleryLoading}
               >
                 {galleryLoading ? 'در حال افزودن...' : 'افزودن'}
-              </button>
-              <button 
-                type="button" 
-                className="px-3 py-1 rounded font-medium bg-blue-500 text-white hover:bg-blue-600"
-                onClick={() => {
-                  console.log('Current state:', { videoInput, videoTitle, galleryLoading, galleryVideos });
-                  setGalleryLoading(false);
-                }}
-              >
-                تست
               </button>
             </div>
             <ul>
