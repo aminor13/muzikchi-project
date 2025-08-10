@@ -82,52 +82,89 @@ export default function AdvancedSearch() {
       isLoadingRef.current = false;
       setLoading(false);
       setError("درخواست با مشکل مواجه شد. لطفاً دوباره تلاش کنید.");
-    }, 30000);
+    }, 10000); // Reduced from 30 seconds to 10 seconds
     
     try {
       console.log('Creating Supabase client...');
       const supabase = createClient();
       
+      // First, test basic connection with a simple query
+      console.log('Testing basic connection...');
+      const { data: testData, error: testError } = await supabase
+        .from("profiles")
+        .select("id")
+        .limit(1);
+      
+      console.log('Basic connection test result:', { testData, testError });
+      
+      if (testError) {
+        console.error('Basic connection failed:', testError);
+        setError("خطا در اتصال به دیتابیس. لطفاً دوباره تلاش کنید.");
+        return;
+      }
+      
       console.log('Building query...');
       let query = supabase
         .from("profiles")
-        .select("id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician", { count: "exact" })
+        .select("id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician")
         .eq('is_complete', true)
-        .range((pageNum - 1) * PAGE_SIZE, pageNum * PAGE_SIZE - 1);
+        .limit(PAGE_SIZE); // Use limit instead of range for better performance
       
-      if (name) query = query.or(`name.ilike.%${name}%,display_name.ilike.%${name}%`);
-      if (province) query = query.eq("province", province);
-      if (city) query = query.eq("city", city);
-      if (role) query = query.contains("roles", [role]);
-      if (category === 'band') query = query.eq("category", 'band');
-      if (instrument) {
-        console.log('Applying instrument filter:', instrument);
-        console.log('Instrument type:', typeof instrument);
-        
-        // Filter profiles that have the specified instrument
-        const { data: instrumentProfiles, error: instrumentError } = await supabase
-          .from('profile_instruments')
-          .select('profile_id')
-          .eq('instrument_id', instrument)
-          .eq('type', 'musician');
-        
-        console.log('Instrument query result:', { instrumentProfiles, instrumentError });
-        
-        if (!instrumentError && instrumentProfiles && instrumentProfiles.length > 0) {
-          const profileIds = instrumentProfiles.map(p => p.profile_id);
-          console.log('Found profiles with instrument:', profileIds);
-          query = query.in('id', profileIds);
-        } else {
-          console.log('No profiles found with instrument:', instrument);
-          // Return empty results if no profiles have this instrument
-          setResults([]);
-          setHasMore(false);
-          return;
-        }
+      // Test count query first
+      console.log('Testing count query...');
+      const { count: totalCount, error: countError } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq('is_complete', true);
+      
+      console.log('Count query result:', { totalCount, countError });
+      
+      if (countError) {
+        console.error('Count query failed:', countError);
+        setError("خطا در دریافت تعداد پروفایل‌ها. لطفاً دوباره تلاش کنید.");
+        return;
       }
-      if (gender) query = query.eq("gender", gender);
-      if (readyForCooperate) query = query.eq("ready_for_cooperate", true);
-      if (lookingForMusician) query = query.eq("looking_for_musician", true);
+      
+      console.log('Total profiles count:', totalCount);
+      
+      // Apply basic filters only
+      if (name) {
+        console.log('Applying name filter:', name);
+        query = query.or(`name.ilike.%${name}%,display_name.ilike.%${name}%`);
+      }
+      if (province) {
+        console.log('Applying province filter:', province);
+        query = query.eq("province", province);
+      }
+      if (city) {
+        console.log('Applying city filter:', city);
+        query = query.eq("city", city);
+      }
+      if (role) {
+        console.log('Applying role filter:', role);
+        query = query.contains("roles", [role]);
+      }
+      if (category === 'band') {
+        console.log('Applying band filter');
+        query = query.eq("category", 'band');
+      }
+      if (gender) {
+        console.log('Applying gender filter:', gender);
+        query = query.eq("gender", gender);
+      }
+      if (readyForCooperate) {
+        console.log('Applying ready for cooperate filter');
+        query = query.eq("ready_for_cooperate", true);
+      }
+      if (lookingForMusician) {
+        console.log('Applying looking for musician filter');
+        query = query.eq("looking_for_musician", true);
+      }
+      
+      // Skip instrument filter for now to simplify
+      if (instrument) {
+        console.log('Skipping instrument filter for now to simplify query');
+      }
       
       console.log('Final query before execution:', query);
       console.log('Executing query...');
