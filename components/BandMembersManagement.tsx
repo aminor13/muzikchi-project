@@ -63,7 +63,7 @@ export default function BandMembersManagement({ bandId }: { bandId: string }) {
         return
       }
 
-      const filteredData = (data || []).filter(profile => 
+      const filteredData = (data || []).filter((profile: SearchProfile) =>
         profile && 
         profile.display_name && 
         (profile.display_name.toLowerCase().includes(query.toLowerCase()) ||

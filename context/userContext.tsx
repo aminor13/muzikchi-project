@@ -1,7 +1,6 @@
-'use client'
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { User } from '@supabase/supabase-js'
+import { User, AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { Profile } from '@/types/profile'
 
 interface UserContextType {
@@ -23,73 +22,72 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
 
-  useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-        
-        if (authError) {
-          if (authError.message.includes('Auth session missing')) {
-            setUser(null)
-            setProfile(null)
-            setLoading(false)
-            return
-          }
-          throw authError
-        }
-        
-        setUser(user)
-
-        if (user) {
-          const { data, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .maybeSingle()
-
-          if (profileError) {
-            console.error('Error fetching profile:', profileError)
-            setProfile(null)
-          } else {
-            setProfile(data)
-          }
-        } else {
+  // Fetch function memoized so it doesn't recreate on every render
+  const fetchUserAndProfile = useCallback(async () => {
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError) {
+        if (authError.message.includes('Auth session missing')) {
+          setUser(null)
           setProfile(null)
+          setLoading(false)
+          return
         }
-      } catch (error) {
-        if (error instanceof Error && 
-            !error.message.includes('Auth session missing') && 
-            !error.message.toLowerCase().includes('email')) {
-          console.error('Error fetching user:', error)
-          setError('خطا در بارگذاری اطلاعات کاربر')
-        }
-      } finally {
-        setLoading(false)
+        throw authError
       }
-    }
 
-    fetchUserAndProfile()
+      setUser(user)
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        if (!userError && user) {
-          fetchUserAndProfile()
+      if (user) {
+        const { data, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError)
+          setProfile(null)
+        } else {
+          setProfile(data)
         }
       } else {
-        setUser(null)
         setProfile(null)
       }
-    })
+    } catch (err) {
+      if (err instanceof Error &&
+          !err.message.includes('Auth session missing') &&
+          !err.message.toLowerCase().includes('email')) {
+        console.error('Error fetching user:', err)
+        setError('خطا در بارگذاری اطلاعات کاربر')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [supabase])
+
+  useEffect(() => {
+    fetchUserAndProfile() // initial load
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event: AuthChangeEvent, session: Session | null) => {
+        if (event === 'SIGNED_IN') {
+          fetchUserAndProfile()
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setProfile(null)
+        }
+      }
+    )
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [supabase, fetchUserAndProfile])
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return
-
     try {
       const { error } = await supabase
         .from('profiles')
@@ -123,4 +121,4 @@ export function useUser() {
     throw new Error('useUser must be used within a UserProvider')
   }
   return context
-} 
+}

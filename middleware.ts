@@ -2,10 +2,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { checkProfile } from '@/app/utils/profile'
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
+  // Create a response bound to the incoming request (required for cookie sync)
+  let res = NextResponse.next({ request: req })
   const pathname = req.nextUrl.pathname
 
   // Skip middleware for static files and api routes
@@ -23,71 +23,82 @@ export async function middleware(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return req.cookies.get(name)?.value
+        getAll() {
+          return req.cookies.getAll()
         },
-        set(name: string, value: string, options: { path?: string; maxAge?: number; domain?: string; secure?: boolean }) {
-          res.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-        },
-        remove(name: string, options: { path?: string; domain?: string }) {
-          res.cookies.delete({
-            name,
-            ...options,
-          })
+        setAll(cookiesToSet) {
+          // Mirror cookies on the request and the response
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value))
+          res = NextResponse.next({ request: req })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            res.cookies.set(name, value, options)
+          )
         },
       },
     }
   )
 
+  // Keep session fresh; this may update cookies via setAll above
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // If user is not logged in and trying to access protected routes
   const publicRoutes = [
     '/login',
     '/forgot-password',
     '/reset-password',
     '/verify-email',
     '/explore',
-    '/'
+    '/',
   ]
-  
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
-  
+  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route))
+
+  // Not authenticated and trying to access protected route
   if (!user && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', req.url))
+    const url = new URL('/login', req.url)
+    const redirect = NextResponse.redirect(url)
+    // Preserve any cookies Supabase set during refresh
+    // @ts-ignore - setAll is available at runtime in Next 13+/15 middleware
+    redirect.cookies.setAll(res.cookies.getAll())
+    return redirect
   }
 
-  // If user is logged in
+  // If user is logged in, perform additional checks
   if (user) {
-    const { profile } = await checkProfile(user.id)
-
-    // If user's email is not confirmed, redirect to verify-email
+    // 1) Email verification
     if (!user.email_confirmed_at && !pathname.startsWith('/verify-email')) {
-      return NextResponse.redirect(new URL('/verify-email', req.url))
+      const url = new URL('/verify-email', req.url)
+      const redirect = NextResponse.redirect(url)
+      // @ts-ignore
+      redirect.cookies.setAll(res.cookies.getAll())
+      return redirect
     }
 
-    // If profile doesn't exist or is not complete and not on complete profile page
+    // 2) Profile completeness and admin checks (same Supabase client to avoid cookie desync)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin, is_complete')
+      .eq('id', user.id)
+      .maybeSingle()
+
     if ((!profile || !profile.is_complete) && !pathname.startsWith('/profile/complete')) {
-      return NextResponse.redirect(new URL('/profile/complete', req.url))
+      const url = new URL('/profile/complete', req.url)
+      const redirect = NextResponse.redirect(url)
+      // @ts-ignore
+      redirect.cookies.setAll(res.cookies.getAll())
+      return redirect
     }
 
-    // If profile is complete and trying to access complete profile page
-    if (profile?.is_complete && pathname.startsWith('/profile/complete')) {
-      return NextResponse.redirect(new URL('/', req.url))
-    }
-
-    // If trying to access admin routes without admin privileges
     if (pathname.startsWith('/admin') && !profile?.is_admin) {
-      return NextResponse.redirect(new URL('/', req.url))
+      const url = new URL('/', req.url)
+      const redirect = NextResponse.redirect(url)
+      // @ts-ignore
+      redirect.cookies.setAll(res.cookies.getAll())
+      return redirect
     }
   }
 
+  // Return the response that contains any refreshed cookies
   return res
 }
 

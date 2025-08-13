@@ -164,11 +164,11 @@ export default function CompleteProfileForm({ userId, initialProfile, provinces,
         .eq('profile_id', userId);
 
       if (!error && data) {
-        setMusicianInstruments(data.filter(i => i.type === 'musician').map(i => ({
+        setMusicianInstruments(data.filter((i: any) => i.type === 'musician').map((i: any) => ({
           instrument: i.instrument_id,
           skill: i.skill
         })));
-        setTeacherInstruments(data.filter(i => i.type === 'teacher').map(i => i.instrument_id));
+        setTeacherInstruments(data.filter((i: any) => i.type === 'teacher').map((i: any) => i.instrument_id));
         setInstrumentsLoaded(true);
       }
     };

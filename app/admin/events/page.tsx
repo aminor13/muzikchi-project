@@ -49,7 +49,7 @@ export default function AdminEventsPage() {
       `)
       .order('created_at', { ascending: false })
 
-    console.log('Fetched events:', events?.map(e => ({ id: e.id, title: e.title })))
+      //console.log('Fetched events:', events?.map((e: any) => ({ id: e.id, title: e.title })))
     setAllEvents(events || [])
     setIsLoading(false)
   }

@@ -48,7 +48,7 @@ export default function BandSearch({ userId, activeBandIds }: { userId: string, 
             .from('band_members')
             .select('band_id, status')
             .eq('member_id', userId)
-            .in('band_id', bands.map(b => b.id))
+            .in('band_id', bands.map((b: Band) => b.id))
             .order('created_at', { ascending: false })
 
           if (requestsError) {
@@ -63,7 +63,7 @@ export default function BandSearch({ userId, activeBandIds }: { userId: string, 
               return acc
             }, []) || []
             
-            latestRequests.forEach(req => {
+            latestRequests.forEach((req: any) => {
               requestMap[req.band_id] = req.status === 'requested'
             })
             setExistingRequests(requestMap)

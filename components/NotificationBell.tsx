@@ -47,9 +47,9 @@ export default function NotificationBell() {
           table: 'notifications',
             filter: `recipient_id=eq.${user.id}`
         },
-        (payload) => {
-          setNotifications(prev => [payload.new as Notification, ...prev])
-          setUnreadCount(prev => prev + 1)
+        (payload: { new: unknown }) => {
+          setNotifications((prev: Notification[]) => [payload.new as Notification, ...prev])
+          setUnreadCount((prev: number) => prev + 1)
         }
       )
       .subscribe()
@@ -83,7 +83,7 @@ export default function NotificationBell() {
 
     if (data && !error) {
       setNotifications(data)
-      setUnreadCount(data.filter(n => !n.read).length)
+      setUnreadCount(data.filter((n: Notification) => !n.read).length)
     }
   }
 

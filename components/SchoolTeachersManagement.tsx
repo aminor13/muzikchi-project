@@ -186,7 +186,7 @@ export default function SchoolTeachersManagement({ schoolId }: { schoolId: strin
     }
 
     // Filter results to only include those that match the name search
-    const filteredData = data?.filter(profile => 
+    const filteredData = data?.filter((profile: { display_name: string; name?: string | null }) => 
       profile.display_name.toLowerCase().includes(query.toLowerCase()) ||
       (profile.name && profile.name.toLowerCase().includes(query.toLowerCase()))
     )
