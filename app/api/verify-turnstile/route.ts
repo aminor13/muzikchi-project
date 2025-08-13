@@ -8,12 +8,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Token is required' }, { status: 400 })
     }
 
-    const secretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY
+    const secretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET_KEY
     
     if (!secretKey) {
-      console.error('Secret key not configured')
+      console.error('Turnstile secret key not configured. Please set CLOUDFLARE_TURNSTILE_SECRET_KEY or TURNSTILE_SECRET_KEY')
       return NextResponse.json({ success: false, error: 'Secret key not configured' }, { status: 500 })
     }
+
+    const ipHeader = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || ''
+    const remoteip = ipHeader.split(',')[0]?.trim()
+
+    const bodyParams = new URLSearchParams()
+    bodyParams.set('secret', secretKey)
+    bodyParams.set('response', token)
+    if (remoteip) bodyParams.set('remoteip', remoteip)
 
     // Verify the token with Cloudflare
     const verifyResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
@@ -21,7 +29,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: `secret=${secretKey}&response=${token}`,
+      body: bodyParams.toString(),
     })
 
     const verifyData = await verifyResponse.json()
@@ -32,7 +40,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         success: false, 
         error: 'Token verification failed',
-        details: verifyData['error-codes']
+        details: verifyData['error-codes'] || [],
       }, { status: 400 })
     }
   } catch (error) {

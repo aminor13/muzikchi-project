@@ -27,7 +27,7 @@ export default function LoginPage() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
-  const turnstileSiteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY || '0x4AAAAAABoOxgRSN5jLiz6e'
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY || ''
   
 
   const [showPassword, setShowPassword] = useState(false)
@@ -44,15 +44,9 @@ export default function LoginPage() {
     localStorage.setItem('login_email', e.target.value)
   }
 
-  const handleRecaptchaChange = (token: string | null) => {
-    // setRecaptchaToken(token) // This state is no longer needed
-  }
-
   const handleTurnstileVerify = (token: string) => {
     setTurnstileToken(token)
   }
-
-
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -60,21 +54,18 @@ export default function LoginPage() {
     setError(null)
     
     try {
-      // اول چک می‌کنیم که فیلدها خالی نباشند
       if (!email || !password) {
         setError('لطفاً ایمیل و رمز عبور را وارد کنید')
         setLoading(false)
         return
       }
 
-      // Check Turnstile
       if (!turnstileToken) {
         setError('لطفاً کپچا را تکمیل کنید')
         setLoading(false)
         return
       }
 
-      // Verify Turnstile token
       const verifyResponse = await fetch('/api/verify-turnstile', {
         method: 'POST',
         headers: {
@@ -91,24 +82,6 @@ export default function LoginPage() {
         return
       }
 
-      // Test login with API route first
-      const testResponse = await fetch('/api/test-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
-      })
-
-      const testData = await testResponse.json()
-      
-      if (!testData.success) {
-        setError(`خطا در ورود: ${testData.error}`)
-        setLoading(false)
-        return
-      }
-
-      // If API login works, try client-side login
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password.trim(),
@@ -121,14 +94,12 @@ export default function LoginPage() {
       }
 
       if (data?.user) {
-        // چک کردن تایید ایمیل
         if (!data.user.email_confirmed_at) {
           setError('لطفاً ابتدا ایمیل خود را تایید کنید. ایمیل تایید برای شما ارسال شده است.')
           setLoading(false)
           return
         }
 
-        // چک کردن وضعیت پروفایل کاربر
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -141,14 +112,11 @@ export default function LoginPage() {
           return
         }
 
-        // اگر ایمیل تایید نشده، به صفحه تایید ایمیل برو
         if (!data.user.email_confirmed_at) {
           router.push('/verify-email')
         } else if (!profile || !profile.is_complete) {
-          // اگر پروفایل کامل نبود، به صفحه تکمیل پروفایل برو
           router.push('/profile/complete')
         } else {
-          // در غیر این صورت به صفحه اصلی برو
           router.push('/')
         }
       }
@@ -235,10 +203,7 @@ export default function LoginPage() {
             </div>
           )}
 
-
-          
-          {/* Turnstile Widget */}
-          {isClient && turnstileSiteKey && turnstileSiteKey !== '' ? (
+          {isClient && turnstileSiteKey ? (
             <div className="flex justify-center">
               <Turnstile
                 sitekey={turnstileSiteKey}
@@ -250,8 +215,11 @@ export default function LoginPage() {
                 onError={(error) => {
                   setError(`خطا در بارگذاری کپچا: ${error}`)
                 }}
-                onLoad={(widgetId) => {
-                  // Turnstile loaded successfully
+                onExpire={() => {
+                  setTurnstileToken(null)
+                }}
+                onTimeout={() => {
+                  setTurnstileToken(null)
                 }}
               />
             </div>
@@ -281,7 +249,6 @@ export default function LoginPage() {
           </div>
         </form>
 
-        {/* Navigation buttons outside the form */}
         <div className="max-w-sm mx-auto flex flex-row justify-between mt-2">
           <a
             href="/forgot-password"
