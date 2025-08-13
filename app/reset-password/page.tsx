@@ -3,6 +3,8 @@
 import { useState, FormEvent } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 // پالی‌فیل برای WebCrypto
 const cryptoPolyfill = {
@@ -33,6 +35,29 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const router = useRouter()
   const supabase = createClient()
+  const searchParams = useSearchParams()
+
+  // اگر با لینک ایمیل آمده باشد و code در URL باشد، سشن را با آن تبادل کن
+  useEffect(() => {
+    const code = searchParams.get('code')
+    if (!code) return
+    const doExchange = async () => {
+      try {
+        const { error } = await (supabase.auth as any).exchangeCodeForSession(code)
+        if (error) {
+          setMessage({ type: 'error', text: 'اعتبارسنجی لینک بازیابی ناموفق بود. لطفاً دوباره تلاش کنید.' })
+          return
+        }
+        // پاکسازی پارامتر از آدرس
+        router.replace('/reset-password')
+      } catch (err) {
+        console.error('exchangeCodeForSession error', err)
+        setMessage({ type: 'error', text: 'خطا در اعتبارسنجی لینک بازیابی' })
+      }
+    }
+    doExchange()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()

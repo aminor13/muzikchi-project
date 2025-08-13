@@ -132,7 +132,7 @@ export default function ForgotPasswordPage() {
 
       // ارسال لینک بازیابی
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/reset-password?code={TOKEN}`,
       })
 
       if (error) throw error
