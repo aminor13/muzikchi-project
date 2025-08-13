@@ -18,6 +18,21 @@ import { createClient } from '@/utils/supabase/client'
 export default function Home() {
   const router = useRouter()
   useEffect(() => {
+    // اگر لینک ایمیل کاربر را به ریشه سایت با ?code=... آورد، اینجا هندل کنیم
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+    if (code) {
+      const supabase = createClient()
+      ;(async () => {
+        try {
+          await (supabase.auth as any).exchangeCodeForSession(code)
+          router.replace('/reset-password')
+        } catch (e) {
+          console.error('Failed to exchange code on /', e)
+        }
+      })()
+      return
+    }
     const checkProfile = async () => {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
