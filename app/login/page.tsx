@@ -1,5 +1,5 @@
 'use client'
-import { useState, FormEvent, ChangeEvent, useEffect } from 'react'
+import { useState, FormEvent, ChangeEvent, useEffect, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { AuthError, AuthResponse } from '@supabase/supabase-js'
@@ -33,11 +33,49 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isClient, setIsClient] = useState(false)
 
+  // Ref for Turnstile wrapper to scale iframe responsively
+  const turnstileWrapperRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
     setIsClient(true)
     const savedEmail = localStorage.getItem('login_email')
     if (savedEmail) setEmail(savedEmail)
   }, [])
+
+  // Make Turnstile match the width of inputs and have rounded corners via a wrapper
+  useEffect(() => {
+    if (!isClient) return
+    const wrapper = turnstileWrapperRef.current
+    if (!wrapper) return
+
+    const BASE_WIDTH = 300
+    const BASE_HEIGHT = 65
+
+    const applyScale = () => {
+      const iframe = wrapper.querySelector('iframe') as HTMLIFrameElement | null
+      if (!iframe) return
+      const scale = wrapper.clientWidth / BASE_WIDTH
+      iframe.style.transformOrigin = '0 0'
+      iframe.style.transform = `scale(${scale})`
+      iframe.style.display = 'block'
+      // Set wrapper height so the layout reserves correct space
+      wrapper.style.height = `${BASE_HEIGHT * scale}px`
+    }
+
+    const resizeObserver = new ResizeObserver(applyScale)
+    resizeObserver.observe(wrapper)
+
+    const mutationObserver = new MutationObserver(applyScale)
+    mutationObserver.observe(wrapper, { childList: true, subtree: true })
+
+    // Initial attempt
+    applyScale()
+
+    return () => {
+      resizeObserver.disconnect()
+      mutationObserver.disconnect()
+    }
+  }, [isClient])
 
   const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value)
@@ -204,24 +242,29 @@ export default function LoginPage() {
           )}
 
           {isClient && turnstileSiteKey ? (
-            <div className="flex justify-center">
-              <Turnstile
-                sitekey={turnstileSiteKey}
-                onVerify={handleTurnstileVerify}
-                theme="auto"
-                size="normal"
-                appearance="always"
-                language="fa"
-                onError={(error) => {
-                  setError(`خطا در بارگذاری کپچا: ${error}`)
-                }}
-                onExpire={() => {
-                  setTurnstileToken(null)
-                }}
-                onTimeout={() => {
-                  setTurnstileToken(null)
-                }}
-              />
+            <div className="max-w-sm mx-auto">
+              <div
+                ref={turnstileWrapperRef}
+                className="w-full overflow-hidden rounded-md border border-gray-300"
+              >
+                <Turnstile
+                  sitekey={turnstileSiteKey}
+                  onVerify={handleTurnstileVerify}
+                  theme="auto"
+                  size="normal"
+                  appearance="always"
+                  language="fa"
+                  onError={(error) => {
+                    setError(`خطا در بارگذاری کپچا: ${error}`)
+                  }}
+                  onExpire={() => {
+                    setTurnstileToken(null)
+                  }}
+                  onTimeout={() => {
+                    setTurnstileToken(null)
+                  }}
+                />
+              </div>
             </div>
           ) : !isClient ? (
             <div className="flex justify-center">
