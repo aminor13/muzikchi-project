@@ -55,7 +55,7 @@ export default function LoginPage() {
       const iframe = wrapper.querySelector('iframe') as HTMLIFrameElement | null
       if (!iframe) return
       const scale = wrapper.clientWidth / BASE_WIDTH
-      iframe.style.transformOrigin = '0 0'
+      iframe.style.transformOrigin = '50% 50%'
       iframe.style.transform = `scale(${scale})`
       iframe.style.display = 'block'
       // Set wrapper height so the layout reserves correct space
@@ -245,7 +245,7 @@ export default function LoginPage() {
             <div className="max-w-sm mx-auto">
               <div
                 ref={turnstileWrapperRef}
-                className="w-full overflow-hidden rounded-md border border-gray-300"
+                className="w-full overflow-hidden rounded-md border border-gray-300 bg-white flex items-center justify-center"
               >
                 <Turnstile
                   sitekey={turnstileSiteKey}
