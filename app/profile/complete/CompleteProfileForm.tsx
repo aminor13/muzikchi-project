@@ -503,6 +503,13 @@ export default function CompleteProfileForm({ userId, initialProfile, provinces,
               })()}
             </div>
           )}
+          {form.category === 'band' && (
+            <div>
+              <div className="flex flex-wrap gap-4">
+                <span className="text-gray-100 flex items-center gap-2">گروه موسیقی</span>
+              </div>
+            </div>
+          )}
 
           {/* فیلدهای مشترک و شرطی */}
           <div className="space-y-8">
