@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import type { ComponentType } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Database } from '@/types/supabase'
@@ -9,6 +10,7 @@ import categoryRoles from '@/data/category_role.json'
 import instrumentGroups from '@/data/instruments'
 import CompleteProfileModal from '@/app/components/CompleteProfileModal'
 import { useUser } from '@/context/userContext'
+import { User as UserIcon, Wrench, MapPin, Music2 } from 'lucide-react'
 
 interface CompleteProfileFormProps {
   userId: string
@@ -51,24 +53,42 @@ function CategorySelection({ onSelect, selectedCategory, categoryOptions }: {
   selectedCategory: string,
   categoryOptions: { value: string; label: string }[]
 }) {
+  const ICON_MAP: Record<string, ComponentType<any>> = {
+    person: UserIcon,
+    crew: Wrench,
+    place: MapPin,
+    band: Music2,
+  }
+
   return (
     <div className="mb-8 bg-gray-800">
-      
-      <div className="flex flex-wrap gap-4 bg-gray-800">
-        {categoryOptions.map(option => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onSelect(option.value as 'person' | 'crew' | 'place' | 'band')}
-            className={`px-6 py-3 rounded-md text-lg ${
-              selectedCategory === option.value
-                ? 'bg-orange-500 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-800">
+        {categoryOptions.map(option => {
+          const Icon = ICON_MAP[option.value] || UserIcon
+          const rolesForCategory = CATEGORY_OPTIONS.find(c => c.value === option.value)?.roles || []
+          const isSelected = selectedCategory === option.value
+          return (
+            <div key={option.value} className="flex flex-col items-center">
+              <button
+                type="button"
+                onClick={() => onSelect(option.value as 'person' | 'crew' | 'place' | 'band')}
+                title={option.label}
+                aria-pressed={isSelected}
+                className={`${isSelected ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'} w-full flex items-center justify-center rounded-md py-4`}
+              >
+                <Icon className="w-8 h-8" />
+                <span className="sr-only">{option.label}</span>
+              </button>
+              {!selectedCategory && rolesForCategory.length > 0 && (
+                <div className="mt-2 text-xs text-gray-300 text-center leading-5">
+                  {rolesForCategory.map((role: any) => (
+                    <div key={role.value}>{role.label}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
