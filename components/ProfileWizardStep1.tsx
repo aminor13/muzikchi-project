@@ -150,11 +150,15 @@ export default function ProfileWizardStep1() {
       }
 
               // Sign up the user
+        const redirectUrl = typeof window !== 'undefined'
+          ? `${window.location.origin}/verify-email`
+          : `${process.env.NEXT_PUBLIC_SITE_URL || 'https://muzikchi.ir'}/verify-email`
+
         const { data, error } = await supabase.auth.signUp({
           email: formData.email.trim(),
           password: formData.password,
           options: {
-            emailRedirectTo: `https://muzikchi.ir/verify-email?code={TOKEN}`
+            emailRedirectTo: redirectUrl,
           }
         })
 

@@ -120,13 +120,17 @@ export default function LoginPage() {
         return
       }
 
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await (supabase.auth as any).signInWithPassword({
         email: email.trim(),
         password: password.trim(),
+        options: {
+          captchaToken: turnstileToken,
+        },
       })
 
       if (signInError) {
-        setError('خطا در ورود به سیستم')
+        console.error('Supabase signIn error:', signInError)
+        setError(signInError?.message || 'خطا در ورود به سیستم')
         setLoading(false)
         return
       }
