@@ -86,6 +86,9 @@ function CategorySelection({ onSelect, selectedCategory, categoryOptions }: {
                   ))}
                 </div>
               )}
+              {!selectedCategory && rolesForCategory.length === 0 && option.value === 'band' && (
+                <div className="mt-2 text-xs text-gray-300 text-center leading-5">گروه موسیقی</div>
+              )}
             </div>
           )
         })}
@@ -523,7 +526,13 @@ export default function CompleteProfileForm({ userId, initialProfile, provinces,
               })()}
             </div>
           )}
-
+          {form.category === 'band' && (
+            <div>
+              <div className="flex flex-wrap gap-4">
+                <span className="text-gray-100 flex items-center gap-2">گروه موسیقی</span>
+              </div>
+            </div>
+          )}
           {/* فیلدهای مشترک و شرطی */}
           <div className="space-y-8">
             {/* اطلاعات شخصی */}
@@ -772,6 +781,7 @@ export default function CompleteProfileForm({ userId, initialProfile, provinces,
           </div>
         </div>
       </form>
+
 
       <CompleteProfileModal 
         isOpen={showModal} 
