@@ -89,7 +89,7 @@ export default function AdvancedSearch() {
       const supabase = createClient();
       
       // Use retry logic for all database operations
-      const executeQuery = async () => {
+      const executeQuery = async (): Promise<{ data: any[]; count: number | null }> => {
         // First, test basic connection with a simple query
         console.log('Testing basic connection...');
         const { data: testData, error: testError } = await supabase
@@ -191,20 +191,20 @@ export default function AdvancedSearch() {
         
         console.log('Final query before execution:', query);
         console.log('Executing query...');
-        const { data, error: supabaseError, count } = await query;
+        const { data, error: supabaseError } = await query;
         console.log('Executed query with filters:', {
           name, province, city, role, category, instrument, gender, readyForCooperate, lookingForMusician,
           pageNum, pageSize: PAGE_SIZE
         });
         
-        console.log('Query result:', { dataLength: data?.length, error: supabaseError, count });
+        console.log('Query result:', { dataLength: data?.length, error: supabaseError });
         
         if (supabaseError) {
           console.error('Supabase error:', supabaseError);
           throw new Error('خطا در دریافت اطلاعات');
         }
         
-        return { data, count };
+        return { data: data || [], count: null };
       };
       
       // Use retry logic
