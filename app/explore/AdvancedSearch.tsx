@@ -105,11 +105,13 @@ export default function AdvancedSearch() {
         }
         
         console.log('Building query...');
+        const offset = (pageNum - 1) * PAGE_SIZE;
+        const to = offset + PAGE_SIZE - 1;
         let query = supabase
           .from("profiles")
           .select("id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician")
           .eq('is_complete', true)
-          .limit(PAGE_SIZE); // Use limit instead of range for better performance
+          .range(offset, to);
         
         // Test count query first
         console.log('Testing count query...');
@@ -178,15 +180,22 @@ export default function AdvancedSearch() {
           }
           const profileIds = Array.from(new Set((piRows || []).map((r: any) => r.profile_id)));
           console.log('Instrument-matched profile IDs:', profileIds.length);
-          if (profileIds.length === 0) {
-            return { data: [], count: 0 };
+          if (profileIds.length > 0) {
+            query = query.in('id', profileIds);
+          } else {
+            // Fallback: try profiles.instruments array if available
+            console.log('No profile_instruments match; applying fallback filter on profiles.instruments');
+            query = query.contains('instruments', [instrument]);
           }
-          query = query.in('id', profileIds);
         }
         
         console.log('Final query before execution:', query);
         console.log('Executing query...');
         const { data, error: supabaseError, count } = await query;
+        console.log('Executed query with filters:', {
+          name, province, city, role, category, instrument, gender, readyForCooperate, lookingForMusician,
+          pageNum, pageSize: PAGE_SIZE
+        });
         
         console.log('Query result:', { dataLength: data?.length, error: supabaseError, count });
         
