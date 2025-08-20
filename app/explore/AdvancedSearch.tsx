@@ -38,6 +38,8 @@ export default function AdvancedSearch() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitializingRef = useRef(false);
   const isLoadingRef = useRef(false);
+  // TEMP: Debug instrument matches per profile for current page
+  const [debugInstrumentMatches, setDebugInstrumentMatches] = useState<Record<string, number>>({});
 
   const q = searchParams.get("q")?.trim();
 
@@ -224,6 +226,18 @@ export default function AdvancedSearch() {
       setHasMore((data?.length || 0) === PAGE_SIZE);
       setRetryCount(0);
       console.log('Fetch successful:', { resultsCount: data?.length, hasMore: (data?.length || 0) === PAGE_SIZE });
+
+      // TEMP: fetch debug instrument matches for current batch of profiles
+      try {
+        if (instrument && (data?.length || 0) > 0) {
+          const currentIds = (data || []).map((p: any) => p.id);
+          await fetchDebugInstrumentMatches(currentIds, append);
+        } else if (!instrument && !append) {
+          setDebugInstrumentMatches({});
+        }
+      } catch (e) {
+        console.warn('Failed to fetch debug instrument matches', e);
+      }
       
     } catch (err) {
       if (timeoutRef.current) {
@@ -238,6 +252,37 @@ export default function AdvancedSearch() {
       isLoadingRef.current = false;
       setLoading(false);
       console.log('Fetch completed, loading set to false');
+    }
+  };
+
+  // TEMP: Fetch instrument-match counts for shown profiles
+  const fetchDebugInstrumentMatches = async (profileIds: string[], append: boolean) => {
+    try {
+      const supabase = createClient();
+      if (!instrument || profileIds.length === 0) {
+        if (!append) setDebugInstrumentMatches({});
+        return;
+      }
+      let piQuery = supabase
+        .from('profile_instruments')
+        .select('profile_id')
+        .eq('instrument_id', instrument)
+        .in('profile_id', profileIds);
+      if (role === 'musician' || role === 'teacher') {
+        piQuery = piQuery.eq('type', role);
+      }
+      const { data: rows, error: piErr } = await piQuery;
+      if (piErr) {
+        console.warn('Debug PI query error', piErr);
+        return;
+      }
+      const counts: Record<string, number> = {};
+      (rows || []).forEach((r: any) => {
+        counts[r.profile_id] = (counts[r.profile_id] || 0) + 1;
+      });
+      setDebugInstrumentMatches(prev => append ? { ...prev, ...counts } : counts);
+    } catch (e) {
+      console.warn('Debug PI exception', e);
     }
   };
 
@@ -701,6 +746,19 @@ export default function AdvancedSearch() {
                             : null
                         )}
                       </div>
+                      {instrument && (
+                        <div className="mt-2 text-xs text-amber-400">
+                          ساز: {allInstruments.find(i => i.id === instrument)?.name || instrument}
+                          {debugInstrumentMatches[profile.id] ? (
+                            <span className="ml-2 bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full">match: {debugInstrumentMatches[profile.id]}</span>
+                          ) : (
+                            <span className="ml-2 bg-gray-600/40 text-gray-300 px-2 py-0.5 rounded-full">match: 0</span>
+                          )}
+                          {role && (role === 'musician' || role === 'teacher') && (
+                            <span className="ml-2 text-[10px] text-gray-400">type: {role}</span>
+                          )}
+                        </div>
+                      )}
                       <div className="flex flex-col gap-1 mt-2">
                         {profile.ready_for_cooperate && (
                           <div className="text-sm text-amber-500 font-medium line-clamp-1">آماده همکاری هستم</div>
