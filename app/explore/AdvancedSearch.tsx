@@ -107,11 +107,7 @@ export default function AdvancedSearch() {
         console.log('Building query...');
         let query = supabase
           .from("profiles")
-          .select(
-            instrument
-              ? "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician, profile_instruments!inner(instrument_id, type)"
-              : "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician"
-          )
+          .select("id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician")
           .eq('is_complete', true)
           .limit(PAGE_SIZE); // Use limit instead of range for better performance
         
@@ -165,13 +161,27 @@ export default function AdvancedSearch() {
           query = query.eq("looking_for_musician", true);
         }
         
-        // Instrument filter
+        // Instrument filter using subquery to ensure correctness
         if (instrument) {
-          console.log('Applying instrument filter:', { instrument, role });
-          query = query.eq('profile_instruments.instrument_id', instrument);
+          console.log('Applying instrument filter via subquery:', { instrument, role });
+          let piQuery = supabase
+            .from('profile_instruments')
+            .select('profile_id')
+            .eq('instrument_id', instrument);
           if (role === 'musician' || role === 'teacher') {
-            query = query.eq('profile_instruments.type', role);
+            piQuery = piQuery.eq('type', role);
           }
+          const { data: piRows, error: piError } = await piQuery;
+          if (piError) {
+            console.error('Instrument subquery failed:', piError);
+            throw new Error('خطا در اعمال فیلتر ساز');
+          }
+          const profileIds = Array.from(new Set((piRows || []).map((r: any) => r.profile_id)));
+          console.log('Instrument-matched profile IDs:', profileIds.length);
+          if (profileIds.length === 0) {
+            return { data: [], count: 0 };
+          }
+          query = query.in('id', profileIds);
         }
         
         console.log('Final query before execution:', query);
