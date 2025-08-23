@@ -10,14 +10,12 @@ export default function VerifyEmailContent() {
 
   const tokenHash = searchParams.get('token_hash')
   const typeParam = searchParams.get('type')
+  const codeParam = searchParams.get('code')
+  const accessToken = searchParams.get('access_token')
 
   const [verifying, setVerifying] = useState<boolean>(false)
   const [verified, setVerified] = useState<boolean>(false)
   const [verifyError, setVerifyError] = useState<string | null>(null)
-
-  const [email, setEmail] = useState('')
-  const [resendLoading, setResendLoading] = useState(false)
-  const [resendMessage, setResendMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const shouldVerify = useMemo(() => Boolean(tokenHash && (typeParam === 'signup' || typeParam === 'email_change')), [tokenHash, typeParam])
 
@@ -48,34 +46,6 @@ export default function VerifyEmailContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldVerify])
 
-  const handleResend = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setResendMessage(null)
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setResendMessage({ type: 'error', text: 'ایمیل معتبر وارد کنید' })
-      return
-    }
-    setResendLoading(true)
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email.trim(),
-        options: {
-          emailRedirectTo: 'https://muzikchi.ir/verify-email'
-        }
-      })
-      if (error) {
-        setResendMessage({ type: 'error', text: error.message || 'ارسال ایمیل ناموفق بود' })
-      } else {
-        setResendMessage({ type: 'success', text: 'ایمیل فعالسازی مجدداً ارسال شد' })
-      }
-    } catch (e: any) {
-      setResendMessage({ type: 'error', text: e?.message || 'ارسال ایمیل ناموفق بود' })
-    } finally {
-      setResendLoading(false)
-    }
-  }
-
   if (verifying) {
     return (
       <div className="text-center">
@@ -93,7 +63,7 @@ export default function VerifyEmailContent() {
     )
   }
 
-  if (verified || (tokenHash && !verifyError)) {
+  if (verified || (tokenHash && !verifyError) || codeParam || accessToken) {
     return (
       <div className="text-center">
         <div className="mb-6">
@@ -139,32 +109,6 @@ export default function VerifyEmailContent() {
         >
           بررسی مجدد
         </button>
-      </div>
-
-      <div className="mt-8 text-left">
-        <h3 className="text-white font-semibold mb-3">ارسال مجدد ایمیل تایید</h3>
-        <form onSubmit={handleResend} className="space-y-2">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ایمیل خود را وارد کنید"
-            className="w-full px-3 py-2 rounded border border-gray-600 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            dir="ltr"
-          />
-          <button
-            type="submit"
-            disabled={resendLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {resendLoading ? 'در حال ارسال...' : 'ارسال مجدد ایمیل فعالسازی'}
-          </button>
-        </form>
-        {resendMessage && (
-          <p className={resendMessage.type === 'success' ? 'text-green-400 mt-3' : 'text-red-400 mt-3'}>
-            {resendMessage.text}
-          </p>
-        )}
       </div>
     </div>
   )
