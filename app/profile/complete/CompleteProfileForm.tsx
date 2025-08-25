@@ -62,7 +62,7 @@ function CategorySelection({ onSelect, selectedCategory, categoryOptions }: {
 
   return (
     <div className="mb-8 bg-gray-800">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-800">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 bg-gray-800">
         {categoryOptions.map(option => {
           const Icon = ICON_MAP[option.value] || UserIcon
           const rolesForCategory = CATEGORY_OPTIONS.find(c => c.value === option.value)?.roles || []
@@ -74,7 +74,7 @@ function CategorySelection({ onSelect, selectedCategory, categoryOptions }: {
                 onClick={() => onSelect(option.value as 'person' | 'crew' | 'place' | 'band')}
                 title={option.label}
                 aria-pressed={isSelected}
-                className={`${isSelected ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'} w-full flex items-center justify-center rounded-md py-4`}
+                className={`${isSelected ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'} w-full flex items-center justify-center rounded-md py-3 sm:py-4`}
               >
                 <Icon className="w-8 h-8" />
                 <span className="sr-only">{option.label}</span>
