@@ -13,7 +13,7 @@ import ErrorBoundary from '@/app/components/ErrorBoundary'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'دایرکتوری موزیسین‌ها',
+  title: 'Muzikchi-موزیکچی',
   description: 'پلتفرم ارتباط موزیسین‌ها و گروه‌های موسیقی',
   icons: {
     icon: '/icons/music-note.svg',
