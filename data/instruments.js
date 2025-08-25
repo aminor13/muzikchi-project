@@ -121,6 +121,14 @@ export const instrumentGroups = [
       { id: "singer_soprano", name: "خواننده (سوپرانو)" },
       { id: "back_vocal", name: "بک وکال" }
     ]
+  },
+  {
+    id: 6,
+    name: "آموزش موسیقی",
+    instruments: [
+      { id: "Solfezh", name: "سلفژ" },
+      { id: "orf", name: "ارف (موسیقی کودک)" },
+    ]
   }
 ];
 

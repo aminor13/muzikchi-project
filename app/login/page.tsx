@@ -126,7 +126,7 @@ export default function LoginPage() {
       })
 
       if (signInError) {
-        setError('خطا در ورود به سیستم')
+        setError('اطلاعات وارد شده صحیح نیستند یا حساب کاربری وجود ندارد')
         setLoading(false)
         return
       }
