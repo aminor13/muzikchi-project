@@ -8,10 +8,11 @@ export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req })
   const pathname = req.nextUrl.pathname
 
-  // Skip middleware for static files and api routes
+  // Skip middleware for static files, api routes, and Supabase auth callbacks
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
+    pathname.startsWith('/auth') ||
     pathname.startsWith('/static') ||
     pathname === '/favicon.ico'
   ) {
@@ -57,9 +58,12 @@ export async function middleware(req: NextRequest) {
   if (!user && !isPublicRoute) {
     const url = new URL('/login', req.url)
     const redirect = NextResponse.redirect(url)
-    // Preserve any cookies Supabase set during refresh
+    // Preserve any cookies Supabase set during refresh (guard for Next <13 runtime)
     // @ts-ignore - setAll is available at runtime in Next 13+/15 middleware
-    redirect.cookies.setAll(res.cookies.getAll())
+    if (typeof redirect.cookies.setAll === 'function') {
+      // @ts-ignore
+      redirect.cookies.setAll(res.cookies.getAll())
+    }
     return redirect
   }
 
@@ -70,7 +74,10 @@ export async function middleware(req: NextRequest) {
       const url = new URL('/verify-email', req.url)
       const redirect = NextResponse.redirect(url)
       // @ts-ignore
-      redirect.cookies.setAll(res.cookies.getAll())
+      if (typeof redirect.cookies.setAll === 'function') {
+        // @ts-ignore
+        redirect.cookies.setAll(res.cookies.getAll())
+      }
       return redirect
     }
 
@@ -85,7 +92,10 @@ export async function middleware(req: NextRequest) {
       const url = new URL('/profile/complete', req.url)
       const redirect = NextResponse.redirect(url)
       // @ts-ignore
-      redirect.cookies.setAll(res.cookies.getAll())
+      if (typeof redirect.cookies.setAll === 'function') {
+        // @ts-ignore
+        redirect.cookies.setAll(res.cookies.getAll())
+      }
       return redirect
     }
 
@@ -93,7 +103,10 @@ export async function middleware(req: NextRequest) {
       const url = new URL('/', req.url)
       const redirect = NextResponse.redirect(url)
       // @ts-ignore
-      redirect.cookies.setAll(res.cookies.getAll())
+      if (typeof redirect.cookies.setAll === 'function') {
+        // @ts-ignore
+        redirect.cookies.setAll(res.cookies.getAll())
+      }
       return redirect
     }
   }
