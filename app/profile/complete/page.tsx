@@ -53,12 +53,10 @@ export default async function CompleteProfilePage() {
   }))
 
   return (
-    <div className="min-h-screen bg-gray-500 py-8">
-      <div className="max-w-4xl mx-auto px-4 bg-gray-800">
-        <div className="flex flex-col">
-          <div className="flex justify-start mt-8 mb-8">
-            <h1 className="text-white text-2xl font-bold bg-gray-800 ml-8">تکمیل پروفایل</h1>
-          </div>
+    <div className="min-h-screen bg-gray-500 py-6 overflow-x-hidden">
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 bg-gray-800 sm:rounded-lg">
+        <div className="flex flex-col py-6">
+          <h1 className="text-white text-2xl font-bold">تکمیل پروفایل</h1>
         </div>
         <CompleteProfileForm 
           userId={user.id}
