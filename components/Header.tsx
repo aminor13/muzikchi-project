@@ -52,19 +52,23 @@ export default function Header() {
       return
     }
 
-    const isBand = profile.category === 'band'
-    const isSchool = profile.category === 'place' && Array.isArray(profile.roles) && profile.roles.includes('school')
-    const isMusicianOrVocalist = Array.isArray(profile.roles) && profile.roles.some((r: string) => ['musician', 'vocalist'].includes(r))
-    const isTeacher = Array.isArray(profile.roles) && profile.roles.includes('teacher')
+    // Derive category and roles as plain strings to avoid TS union mismatches
+    const category = (profile as any)?.category as string | undefined
+    const roles = Array.isArray((profile as any)?.roles) ? ((profile as any)?.roles as string[]) : []
+
+    const isBand = category === 'band'
+    const isSchool = category === 'place' && roles.includes('school')
+    const isMusicianOrVocalist = roles.some((r: string) => ['musician', 'vocalist'].includes(r))
+    const isTeacher = roles.includes('teacher')
 
     const fetchCounts = async () => {
       try {
         // Pending requests to join my band (if I am a band)
-        if (isBand && profile.id) {
+        if (isBand && (profile as any).id) {
           const { count } = await supabase
             .from('band_members')
             .select('id', { count: 'exact', head: true })
-            .eq('band_id', profile.id)
+            .eq('band_id', (profile as any).id)
             .eq('status', 'requested')
           setPendingBandRequestsCount(count || 0)
         } else {
@@ -106,6 +110,14 @@ export default function Header() {
 
   const isActive = (href: string) => pathname === href
 
+  // Derived values for render conditions
+  const category = (profile as any)?.category as string | undefined
+  const roles = Array.isArray((profile as any)?.roles) ? ((profile as any)?.roles as string[]) : []
+  const isBand = category === 'band'
+  const isSchool = category === 'place' && roles.includes('school')
+  const isMusicianOrVocalist = roles.some((r: string) => ['musician','vocalist'].includes(r))
+  const isTeacher = roles.includes('teacher')
+
   return (
     <header className="bg-gray-800 shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -136,11 +148,11 @@ export default function Header() {
         <div className="hidden md:flex items-center gap-x-6">
           {user && profile ? (
             <>
-              {profile.is_complete && (
+              {(profile as any)?.is_complete && (
                 <>
-                  <Link href={`/profile/${profile.display_name}`} className={`text-white hover:text-orange-500 text-base font-medium ${isActive(`/profile/${profile.display_name}`) ? 'font-bold' : ''}`}>پروفایل من</Link>
+                  <Link href={`/profile/${(profile as any).display_name}`} className={`text-white hover:text-orange-500 text-base font-medium ${isActive(`/profile/${(profile as any).display_name}`) ? 'font-bold' : ''}`}>پروفایل من</Link>
                   <Link href="/profile/edit" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/profile/edit') ? 'font-bold' : ''}`}>ویرایش پروفایل</Link>
-                  {profile.category === 'band' && (
+                  {isBand && (
                     <Link href="/band/members" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/band/members') ? 'font-bold' : ''}`}>
                       مدیریت اعضا
                       {pendingBandRequestsCount > 0 && (
@@ -150,11 +162,11 @@ export default function Header() {
                       )}
                     </Link>
                   )}
-                  {profile.category === 'place' && Array.isArray(profile.roles) && profile.roles.includes('school') && (
-                    <Link href="/school/teachers" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/school/teachers') ? 'font-bold' : ''}`}>مدیریت اساتید</Link>
+                  {isSchool && (
+                    <Link href="/school/teachers" className={`text:white hover:text-orange-500 text-base font-medium ${isActive('/school/teachers') ? 'font-bold' : ''}`}>مدیریت اساتید</Link>
                   )}
                   <Link href="/events/my-events" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/events/my-events') ? 'font-bold' : ''}`}>رویدادهای من</Link>
-                  {Array.isArray(profile.roles) && profile.roles.some((r: string) => ['musician','vocalist'].includes(r)) && profile.category !== 'band' && !(profile.category === 'place' && profile.roles.includes('school')) && (
+                  {isMusicianOrVocalist && !isBand && !isSchool && (
                     <Link href="/invites/band" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/invites/band') ? 'font-bold' : ''}`}>
                       دعوت‌های گروه‌ها
                       {pendingBandInvitesCount > 0 && (
@@ -164,7 +176,7 @@ export default function Header() {
                       )}
                     </Link>
                   )}
-                  {Array.isArray(profile.roles) && profile.roles.includes('teacher') && (
+                  {isTeacher && (
                     <Link href="/invites/school" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/invites/school') ? 'font-bold' : ''}`}>
                       دعوت‌های آموزشگاه‌ها
                       {pendingSchoolInvitesCount > 0 && (
@@ -219,11 +231,11 @@ export default function Header() {
           )}
           {user && profile ? (
             <>
-              {profile.is_complete && (
+              {(profile as any)?.is_complete && (
                 <>
-                  <Link href={`/profile/${profile.display_name}`} className={`text-white hover:text-orange-500 text-base font-medium ${isActive(`/profile/${profile.display_name}`) ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>پروفایل من</Link>
+                  <Link href={`/profile/${(profile as any).display_name}`} className={`text-white hover:text-orange-500 text-base font-medium ${isActive(`/profile/${(profile as any).display_name}`) ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>پروفایل من</Link>
                   <Link href="/profile/edit" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/profile/edit') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>ویرایش پروفایل</Link>
-                  {profile.category === 'band' && (
+                  {isBand && (
                     <Link href="/band/members" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/band/members') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>
                       مدیریت اعضا
                       {pendingBandRequestsCount > 0 && (
@@ -233,11 +245,11 @@ export default function Header() {
                       )}
                     </Link>
                   )}
-                  {profile.category === 'place' && Array.isArray(profile.roles) && profile.roles.includes('school') && (
+                  {isSchool && (
                     <Link href="/school/teachers" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/school/teachers') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>مدیریت اساتید</Link>
                   )}
                   <Link href="/events/my-events" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/events/my-events') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>رویدادهای من</Link>
-                  {Array.isArray(profile.roles) && profile.roles.some((r: string) => ['musician','vocalist'].includes(r)) && profile.category !== 'band' && !(profile.category === 'place' && profile.roles.includes('school')) && (
+                  {isMusicianOrVocalist && !isBand && !isSchool && (
                     <Link href="/invites/band" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/invites/band') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>
                       دعوت‌های گروه‌ها
                       {pendingBandInvitesCount > 0 && (
@@ -247,7 +259,7 @@ export default function Header() {
                       )}
                     </Link>
                   )}
-                  {Array.isArray(profile.roles) && profile.roles.includes('teacher') && (
+                  {isTeacher && (
                     <Link href="/invites/school" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/invites/school') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>
                       دعوت‌های آموزشگاه‌ها
                       {pendingSchoolInvitesCount > 0 && (
