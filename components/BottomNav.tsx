@@ -13,7 +13,7 @@ export default function BottomNav() {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4">
-        <ul className="grid grid-cols-5 text-center py-2">
+        <ul className="flex items-center justify-center gap-10 text-center py-2 mx-auto max-w-[360px]">
           <li>
             <Link href="/explore" className={`flex flex-col items-center text-xs ${isActive('/explore') ? 'text-orange-500' : 'text-gray-300'}`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 3.5a6.25 6.25 0 016.75 6.2v.3l.75.75a3.25 3.25 0 11-4.6 4.6l-.75-.75h-.3A6.25 6.25 0 119.75 3.5z" /></svg>
