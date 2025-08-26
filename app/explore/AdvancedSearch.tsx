@@ -82,7 +82,7 @@ export default function AdvancedSearch() {
       isLoadingRef.current = false;
       setLoading(false);
       setError("درخواست با مشکل مواجه شد. لطفاً دوباره تلاش کنید.");
-    }, 10000); // Reduced from 30 seconds to 10 seconds
+    }, 10000);
     
     try {
       console.log('Creating Supabase client...');
@@ -115,7 +115,7 @@ export default function AdvancedSearch() {
           .eq('is_complete', true)
           .not('avatar_url', 'is', null)
           .neq('avatar_url', '')
-          .limit(PAGE_SIZE); // Use limit instead of range for better performance
+          .limit(PAGE_SIZE);
         
         // Test count query first
         console.log('Testing count query...');
@@ -326,7 +326,7 @@ export default function AdvancedSearch() {
     };
 
     initializeAndFetch();
-  }, [searchParams]); // Removed fetchProfiles from dependencies
+  }, [searchParams]);
 
   // Handle filter changes after initialization
   useEffect(() => {
@@ -334,7 +334,7 @@ export default function AdvancedSearch() {
       setPage(1);
       fetchProfiles(1, false);
     }
-  }, [isInitialized, province, city, role, gender, category, name, readyForCooperate, lookingForMusician, instrument]); // Removed fetchProfiles from dependencies
+  }, [isInitialized, province, city, role, gender, category, name, readyForCooperate, lookingForMusician, instrument]);
 
   // Cleanup effect
   useEffect(() => {
@@ -541,7 +541,7 @@ export default function AdvancedSearch() {
               <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">ساز</h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <select
-                  className="w-full px-4 py-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline_none text-right bg-gray-900 text-gray-100"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-right bg-gray-900 text-gray-100"
                   value={instrument}
                   onChange={e => setInstrument(e.target.value)}
                 >
@@ -616,18 +616,57 @@ export default function AdvancedSearch() {
               <Link
                 key={profile.id}
                 href={`/profile/${profile.display_name}`}
-                className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition"
+                className="block h-full"
               >
-                <div className="flex items-center gap-4">
-                  <img
-                    src={profile.avatar_url || "/default-avatar.png"}
-                    alt={profile.name || profile.display_name}
-                    className="h-16 w-16 rounded-full object-cover border"
-                  />
-                  <div className="flex-1 text-right">
-                    <div className="text-lg font-semibold text-white">{profile.name || profile.display_name}</div>
-                    <div className="text-sm text-gray-400">{profile.city || ''}{profile.city && profile.province ? '، ' : ''}{profile.province || ''}</div>
-                    <div className="text-sm text-gray-400">{Array.isArray(profile.roles) ? profile.roles.map((r: string) => allRoles.find((ar: any) => ar.value === r)?.label || r).join('، ') : ''}</div>
+                {/* Mobile list style */}
+                <div className="lg:hidden bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={profile.avatar_url || "/default-avatar.png"}
+                      alt={profile.name || profile.display_name}
+                      className="h-16 w-16 rounded-full object-cover border"
+                    />
+                    <div className="flex-1 text-right">
+                      <div className="text-lg font-semibold text-white">{profile.name || profile.display_name}</div>
+                      <div className="text-sm text-gray-400">{profile.city || ''}{profile.city && profile.province ? '، ' : ''}{profile.province || ''}</div>
+                      <div className="text-sm text-gray-400">{Array.isArray(profile.roles) ? profile.roles.map((r: string) => allRoles.find((ar: any) => ar.value === r)?.label || r).join('، ') : ''}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop card style */}
+                <div className="hidden lg:block bg-gray-800 rounded-xl hover:shadow-lg transition border border-gray-700 cursor-pointer hover:border-orange-500">
+                  <div className="w-full relative" style={{ paddingBottom: '100%' }}>
+                    <img
+                      src={profile.avatar_url || '/default-avatar.png'}
+                      alt={profile.name || profile.display_name}
+                      className="absolute inset-0 w-full h-full object-cover rounded-t-xl"
+                    />
+                  </div>
+                  <div className="p-4 w-full flex-1 flex flex-col min-h-[140px]">
+                    <div className="font-bold text-lg text-white mb-2 line-clamp-1">{profile.name || profile.display_name}</div>
+                    <div className="text-sm text-gray-300 mb-2 line-clamp-1">{profile.city || ''}{profile.city && profile.province ? '، ' : ''}{profile.province || ''}</div>
+                    <div className="text-sm text-gray-400 mb-auto line-clamp-1">
+                      {profile.category === 'band' ? (
+                        <span>گروه موسیقی</span>
+                      ) : (
+                        Array.isArray(profile.roles) && profile.roles.length > 0
+                          ? profile.roles.map((r: string, idx: number) => {
+                              const roleObj = allRoles.find((ar: any) => ar.value === r);
+                              const label = roleObj ? roleObj.label : r;
+                              return <span key={r}>{label}{idx < profile.roles.length - 1 ? ' / ' : ''}</span>;
+                            })
+                          : null
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1 mt-2">
+                      {profile.ready_for_cooperate && (
+                        <div className="text-sm text-amber-500 font-medium line-clamp-1">آماده همکاری هستم</div>
+                      )}
+                      {profile.looking_for_musician && (
+                        <div className="text-sm text-amber-200 font-medium line-clamp-1">پذیرای همکاری هستیم</div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Link>
