@@ -20,18 +20,18 @@ export default function BottomNav() {
               <span>اکسپلور</span>
             </Link>
           </li>
-          <li>
+          {/* <li>
             <Link href="/events" className={`flex flex-col items-center text-xs ${isActive('/events') ? 'text-orange-500' : 'text-gray-300'}`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z" /></svg>
               <span>رویدادها</span>
             </Link>
-          </li>
-          <li>
+          </li> */}
+          {/* <li>
             <Link href="/messages" className={`flex flex-col items-center text-xs ${isActive('/messages') ? 'text-orange-500' : 'text-gray-300'}`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-9 8l4-4h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12z" /></svg>
               <span>پیام‌ها</span>
             </Link>
-          </li>
+          </li> */}
           <li>
             {user && profile ? (
               <Link href={`/profile/${(profile as any).display_name}`} className={`flex flex-col items-center text-xs ${isActive(`/profile/${(profile as any).display_name}`) ? 'text-orange-500' : 'text-gray-300'}`}>
@@ -45,7 +45,7 @@ export default function BottomNav() {
               </Link>
             )}
           </li>
-          <li>
+          {/* <li>
             {user && profile ? (
               <Link href="/events/my-events" className={`flex flex-col items-center text-xs ${isActive('/events/my-events') ? 'text-orange-500' : 'text-gray-300'}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2" /></svg>
@@ -57,7 +57,7 @@ export default function BottomNav() {
                 <span>من</span>
               </span>
             )}
-          </li>
+          </li> */}
         </ul>
       </div>
     </nav>
