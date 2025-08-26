@@ -17,6 +17,11 @@ export default function Header() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
+  // Pending counts for header badges
+  const [pendingBandRequestsCount, setPendingBandRequestsCount] = useState<number>(0) // requests to a band owned by user
+  const [pendingBandInvitesCount, setPendingBandInvitesCount] = useState<number>(0) // invites sent to musician/vocalist user
+  const [pendingSchoolInvitesCount, setPendingSchoolInvitesCount] = useState<number>(0) // invites sent to teacher user
+
   useEffect(() => {
     async function checkAdminStatus() {
       if (!user) return
@@ -38,7 +43,80 @@ export default function Header() {
     checkAdminStatus()
   }, [user, supabase])
 
+  // Load pending counts for relevant actions
+  useEffect(() => {
+    if (!user || !profile) {
+      setPendingBandRequestsCount(0)
+      setPendingBandInvitesCount(0)
+      setPendingSchoolInvitesCount(0)
+      return
+    }
+
+    // Derive category and roles as plain strings to avoid TS union mismatches
+    const category = (profile as any)?.category as string | undefined
+    const roles = Array.isArray((profile as any)?.roles) ? ((profile as any)?.roles as string[]) : []
+
+    const isBand = category === 'band'
+    const isSchool = category === 'place' && roles.includes('school')
+    const isMusicianOrVocalist = roles.some((r: string) => ['musician', 'vocalist'].includes(r))
+    const isTeacher = roles.includes('teacher')
+
+    const fetchCounts = async () => {
+      try {
+        // Pending requests to join my band (if I am a band)
+        if (isBand && (profile as any).id) {
+          const { count } = await supabase
+            .from('band_members')
+            .select('id', { count: 'exact', head: true })
+            .eq('band_id', (profile as any).id)
+            .eq('status', 'requested')
+          setPendingBandRequestsCount(count || 0)
+        } else {
+          setPendingBandRequestsCount(0)
+        }
+
+        // Pending band invites sent to me (if I am musician/vocalist and not a band or school)
+        if (isMusicianOrVocalist && !isBand && !isSchool && user.id) {
+          const { count } = await supabase
+            .from('band_members')
+            .select('id', { count: 'exact', head: true })
+            .eq('member_id', user.id)
+            .eq('status', 'pending')
+          setPendingBandInvitesCount(count || 0)
+        } else {
+          setPendingBandInvitesCount(0)
+        }
+
+        // Pending school invites sent to me (if I am a teacher)
+        if (isTeacher && user.id) {
+          const { count } = await supabase
+            .from('school_teachers')
+            .select('id', { count: 'exact', head: true })
+            .eq('teacher_id', user.id)
+            .eq('status', 'pending')
+          setPendingSchoolInvitesCount(count || 0)
+        } else {
+          setPendingSchoolInvitesCount(0)
+        }
+      } catch (e) {
+        console.error('Error loading pending counts:', e)
+      }
+    }
+
+    fetchCounts()
+  }, [user, profile, supabase])
+
   ///console.log('Header: Current user:', user)
+
+  const isActive = (href: string) => pathname === href
+
+  // Derived values for render conditions
+  const category = (profile as any)?.category as string | undefined
+  const roles = Array.isArray((profile as any)?.roles) ? ((profile as any)?.roles as string[]) : []
+  const isBand = category === 'band'
+  const isSchool = category === 'place' && roles.includes('school')
+  const isMusicianOrVocalist = roles.some((r: string) => ['musician','vocalist'].includes(r))
+  const isTeacher = roles.includes('teacher')
 
   return (
     <header className="bg-gray-800 shadow">
@@ -56,22 +134,59 @@ export default function Header() {
         </Link>
         {/* منوی دسکتاپ */}
         <nav className="hidden md:flex items-center gap-x-8">
-          <Link href="/explore" className={`text-white hover:text-orange-500 text-base font-medium ${pathname === '/explore' ? 'font-bold' : ''}`}>اکسپلور</Link>
-          <Link href="/events" className={`text-white hover:text-orange-500 text-base font-medium ${pathname === '/events' ? 'font-bold' : ''}`}>رویدادها</Link>
-          <Link href="/messages" className={`text-white hover:text-orange-500 text-base font-medium ${pathname === '/messages' ? 'font-bold' : ''}`}>تماس با ما</Link>
+          <Link href="/explore" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/explore') ? 'font-bold' : ''}`}>اکسپلور</Link>
+          <Link href="/events" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/events') ? 'font-bold' : ''}`}>رویدادها</Link>
+          <Link href="/messages" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/messages') ? 'font-bold' : ''}`}>تماس با ما</Link>
           {isAdmin && (
             <>
-              <Link href="/admin/events" className={`text-yellow-200 hover:text-orange-500 text-base font-medium ${pathname === '/admin/events' ? 'font-bold' : ''}`}>مدیریت رویدادها</Link>
-              <Link href="/admin/messages" className={`text-yellow-200 hover:text-orange-500 text-base font-medium ${pathname === '/admin/messages' ? 'font-bold' : ''}`}>پیام‌های کاربران</Link>
+              <Link href="/admin/events" className={`text-yellow-200 hover:text-orange-500 text-base font-medium ${isActive('/admin/events') ? 'font-bold' : ''}`}>مدیریت رویدادها</Link>
+              <Link href="/admin/messages" className={`text-yellow-200 hover:text-orange-500 text-base font-medium ${isActive('/admin/messages') ? 'font-bold' : ''}`}>پیام‌های کاربران</Link>
             </>
           )}
         </nav>
         {/* پروفایل و ورود/خروج دسکتاپ */}
-        <div className="hidden md:flex items-center gap-x-8">
+        <div className="hidden md:flex items-center gap-x-6">
           {user && profile ? (
             <>
-              {profile.is_complete && (
-                <Link href={`/profile/${profile.display_name}`} className={`text-white hover:text-orange-500 text-base font-medium ${pathname === `/profile/${profile.display_name}` ? 'font-bold' : ''}`}>پروفایل من</Link>
+              {(profile as any)?.is_complete && (
+                <>
+                  <Link href={`/profile/${(profile as any).display_name}`} className={`text-white hover:text-orange-500 text-base font-medium ${isActive(`/profile/${(profile as any).display_name}`) ? 'font-bold' : ''}`}>پروفایل من</Link>
+                  <Link href="/profile/edit" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/profile/edit') ? 'font-bold' : ''}`}>ویرایش پروفایل</Link>
+                  {isBand && (
+                    <Link href="/band/members" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/band/members') ? 'font-bold' : ''}`}>
+                      مدیریت اعضا
+                      {pendingBandRequestsCount > 0 && (
+                        <span className="absolute -top-2 -right-3 bg-red-500 text-xs text-white w-5 h-5 flex items-center justify-center rounded-full">
+                          {pendingBandRequestsCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                  {isSchool && (
+                    <Link href="/school/teachers" className={`text:white hover:text-orange-500 text-base font-medium ${isActive('/school/teachers') ? 'font-bold' : ''}`}>مدیریت اساتید</Link>
+                  )}
+                  <Link href="/events/my-events" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/events/my-events') ? 'font-bold' : ''}`}>رویدادهای من</Link>
+                  {isMusicianOrVocalist && !isBand && !isSchool && (
+                    <Link href="/invites/band" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/invites/band') ? 'font-bold' : ''}`}>
+                      دعوت‌های گروه‌ها
+                      {pendingBandInvitesCount > 0 && (
+                        <span className="absolute -top-2 -right-3 bg-red-500 text-xs text-white w-5 h-5 flex items-center justify-center rounded-full">
+                          {pendingBandInvitesCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                  {isTeacher && (
+                    <Link href="/invites/school" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/invites/school') ? 'font-bold' : ''}`}>
+                      دعوت‌های آموزشگاه‌ها
+                      {pendingSchoolInvitesCount > 0 && (
+                        <span className="absolute -top-2 -right-3 bg-red-500 text-xs text-white w-5 h-5 flex items-center justify-center rounded-full">
+                          {pendingSchoolInvitesCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                </>
               )}
               <button
                 onClick={async () => {
@@ -84,7 +199,7 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <Link href="/login" className={`text-white hover:text-orange-500 text-base font-medium ${pathname === '/login' ? 'font-bold' : ''}`}>ورود</Link>
+            <Link href="/login" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/login') ? 'font-bold' : ''}`}>ورود</Link>
           )}
         </div>
         {/* آیکون منوی موبایل */}
@@ -105,19 +220,56 @@ export default function Header() {
       {/* منوی موبایل */}
       {menuOpen && (
         <div className="md:hidden bg-gray-800 px-4 pb-4 flex flex-col gap-4 animate-fade-in-down">
-          <Link href="/explore" className={`text-white hover:text-orange-500 text-base font-medium ${pathname === '/explore' ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>اکسپلور</Link>
-          <Link href="/events" className={`text-white hover:text-orange-500 text-base font-medium ${pathname === '/events' ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>رویدادها</Link>
-          <Link href="/messages" className={`text-white hover:text-orange-500 text-base font-medium ${pathname === '/messages' ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>تماس با ما</Link>
+          <Link href="/explore" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/explore') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>اکسپلور</Link>
+          <Link href="/events" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/events') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>رویدادها</Link>
+          <Link href="/messages" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/messages') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>تماس با ما</Link>
           {isAdmin && (
             <>
-              <Link href="/admin/events" className={`text-yellow-200 hover:text-orange-500 text-base font-medium ${pathname === '/admin/events' ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>مدیریت رویدادها</Link>
-              <Link href="/admin/messages" className={`text-yellow-200 hover:text-orange-500 text-base font-medium ${pathname === '/admin/messages' ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>پیام‌های کاربران</Link>
+              <Link href="/admin/events" className={`text-yellow-200 hover:text-orange-500 text-base font-medium ${isActive('/admin/events') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>مدیریت رویدادها</Link>
+              <Link href="/admin/messages" className={`text-yellow-200 hover:text-orange-500 text-base font-medium ${isActive('/admin/messages') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>پیام‌های کاربران</Link>
             </>
           )}
           {user && profile ? (
             <>
-              {profile.is_complete && (
-                <Link href={`/profile/${profile.display_name}`} className={`text-white hover:text-orange-500 text-base font-medium ${pathname === `/profile/${profile.display_name}` ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>پروفایل من</Link>
+              {(profile as any)?.is_complete && (
+                <>
+                  <Link href={`/profile/${(profile as any).display_name}`} className={`text-white hover:text-orange-500 text-base font-medium ${isActive(`/profile/${(profile as any).display_name}`) ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>پروفایل من</Link>
+                  <Link href="/profile/edit" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/profile/edit') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>ویرایش پروفایل</Link>
+                  {isBand && (
+                    <Link href="/band/members" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/band/members') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>
+                      مدیریت اعضا
+                      {pendingBandRequestsCount > 0 && (
+                        <span className="absolute -top-2 -right-3 bg-red-500 text-xs text-white w-5 h-5 flex items-center justify-center rounded-full">
+                          {pendingBandRequestsCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                  {isSchool && (
+                    <Link href="/school/teachers" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/school/teachers') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>مدیریت اساتید</Link>
+                  )}
+                  <Link href="/events/my-events" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/events/my-events') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>رویدادهای من</Link>
+                  {isMusicianOrVocalist && !isBand && !isSchool && (
+                    <Link href="/invites/band" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/invites/band') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>
+                      دعوت‌های گروه‌ها
+                      {pendingBandInvitesCount > 0 && (
+                        <span className="absolute -top-2 -right-3 bg-red-500 text-xs text-white w-5 h-5 flex items-center justify-center rounded-full">
+                          {pendingBandInvitesCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                  {isTeacher && (
+                    <Link href="/invites/school" className={`relative text-white hover:text-orange-500 text-base font-medium ${isActive('/invites/school') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>
+                      دعوت‌های آموزشگاه‌ها
+                      {pendingSchoolInvitesCount > 0 && (
+                        <span className="absolute -top-2 -right-3 bg-red-500 text-xs text-white w-5 h-5 flex items-center justify-center rounded-full">
+                          {pendingSchoolInvitesCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                </>
               )}
               <button
                 onClick={async () => {
@@ -131,7 +283,7 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <Link href="/login" className={`text-white hover:text-orange-500 text-base font-medium ${pathname === '/login' ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>ورود/ثبت نام</Link>
+            <Link href="/login" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/login') ? 'font-bold' : ''}`} onClick={() => setMenuOpen(false)}>ورود/ثبت نام</Link>
           )}
         </div>
       )}
