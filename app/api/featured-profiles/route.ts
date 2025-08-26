@@ -19,6 +19,8 @@ export async function GET() {
         province
       `)
       .eq('is_complete', true)
+      .not('avatar_url', 'is', null)
+      .neq('avatar_url', '')
       .order('views', { ascending: false })
       .limit(5)
 
