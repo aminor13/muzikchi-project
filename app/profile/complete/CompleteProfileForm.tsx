@@ -139,9 +139,9 @@ export default function CompleteProfileForm({ userId, initialProfile, provinces,
 
   // لاگ مقدار category برای دیباگ
   //console.log('form.category:', form.category)
-
+  
   const [instrumentsLoaded, setInstrumentsLoaded] = useState(false);
-
+  
   // اضافه کردن state برای مودال
   const [showModal, setShowModal] = useState(false)
 
@@ -753,6 +753,7 @@ export default function CompleteProfileForm({ userId, initialProfile, provinces,
                   </div>
                 </div>
                 <p className="mt-1 text-sm text-gray-400">عکس باید مربعی باشد و حجم آن کمتر از 2 مگابایت باشد.</p>
+                <p className="mt-2 text-sm text-orange-400">توجه: تا زمانی که عکس پروفایل آپلود نکنید، پروفایل شما در بخش اکسپلور نمایش داده نمی‌شود.</p>
               </div>
             </div>
           </div>
