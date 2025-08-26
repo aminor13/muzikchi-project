@@ -113,6 +113,8 @@ export default function AdvancedSearch() {
               : "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician"
           )
           .eq('is_complete', true)
+          .not('avatar_url', 'is', null)
+          .neq('avatar_url', '')
           .limit(PAGE_SIZE); // Use limit instead of range for better performance
         
         // Test count query first
@@ -499,204 +501,139 @@ export default function AdvancedSearch() {
                   >
                     <option value="">همه شهرها</option>
                     {cities.map((c: any) => (
-                      <option key={c["city-fa"]} value={c["city-fa"]}>{c["city-fa"]}</option>
+                      <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
                 </div>
               </div>
             </div>
 
-            {/* Role & Category Section */}
+            {/* Category and Role Section */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">نوع فعالیت</h2>
+              <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">دسته‌بندی و نقش</h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <select
-                    className="w-full px-4 py-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-right bg-gray-900 text-gray-100"
-                    value={role}
-                    onChange={e => setRole(e.target.value)}
-                  >
-                    <option value="">همه عناوین (نوازنده، خواننده، ...)</option>
-                    {allRoles.map((r: any) => (
-                      <option key={r.value} value={r.value}>{r.label}</option>
-                    ))}
-                  </select>
-                  {(role === 'musician' || role === 'teacher') && (
-                    <select
-                      className="w-full px-4 py-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-right bg-gray-900 text-gray-100"
-                      value={instrument}
-                      onChange={e => setInstrument(e.target.value)}
-                    >
-                      <option value="">انتخاب ساز</option>
-                      {allInstruments.map(inst => (
-                        <option key={inst.id} value={inst.id}>{inst.name}</option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-                <div className="space-y-4">
-                  {!role && (
-                    <label className="flex items-center gap-2 text-gray-100 p-2 border border-gray-700 rounded-lg bg-gray-900">
-                      <input
-                        type="checkbox"
-                        checked={category === 'band'}
-                        onChange={e => setCategory(e.target.checked ? 'band' : '')}
-                        className="w-4 h-4"
-                      />
-                      <span>فقط گروه‌های موسیقی</span>
-                    </label>
-                  )}
-                  <select
-                    className="w-full px-4 py-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-right bg-gray-900 text-gray-100"
-                    value={gender}
-                    onChange={e => setGender(e.target.value)}
-                  >
-                    {GENDERS.map(g => (
-                      <option key={g.value} value={g.value}>{g.label}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Category */}
+                <select
+                  className="w-full px-4 py-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-right bg-gray-900 text-gray-100"
+                  value={category}
+                  onChange={e => setCategory(e.target.value)}
+                >
+                  <option value="">همه دسته‌ها</option>
+                  <option value="band">گروه موسیقی</option>
+                </select>
+
+                {/* Role */}
+                <select
+                  className="w-full px-4 py-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-right bg-gray-900 text-gray-100"
+                  value={role}
+                  onChange={e => setRole(e.target.value)}
+                >
+                  <option value="">همه نقش‌ها</option>
+                  {allRoles.map((r: any) => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            {/* Additional Filters */}
+            {/* Instrument Section */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">فیلترهای تکمیلی</h2>
+              <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">ساز</h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <label className="flex items-center gap-2 text-gray-100 p-2 border border-gray-700 rounded-lg bg-gray-900">
-                  <input
-                    type="checkbox"
-                    checked={readyForCooperate}
-                    onChange={e => setReadyForCooperate(e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <span>آماده همکاری</span>
-                </label>
-                <label className="flex items-center gap-2 text-gray-100 p-2 border border-gray-700 rounded-lg bg-gray-900">
-                  <input
-                    type="checkbox"
-                    checked={lookingForMusician}
-                    onChange={e => setLookingForMusician(e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <span>پذیرای همکاری</span>
-                </label>
+                <select
+                  className="w-full px-4 py-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline_none text-right bg-gray-900 text-gray-100"
+                  value={instrument}
+                  onChange={e => setInstrument(e.target.value)}
+                >
+                  <option value="">همه سازها</option>
+                  {allInstruments.map((i: any) => (
+                    <option key={i.id} value={i.id}>{i.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            {/* Search Button */}
-            <div className="pt-4">
-              <button
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors"
-                type="button"
-                onClick={() => fetchProfiles(1, false)}
-              >
-                جستجو
-              </button>
+            {/* Gender and Flags Section */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">جنسیت و وضعیت‌ها</h2>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Gender */}
+                <select
+                  className="w-full px-4 py-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-right bg-gray-900 text-gray-100"
+                  value={gender}
+                  onChange={e => setGender(e.target.value)}
+                >
+                  {GENDERS.map(g => (
+                    <option key={g.value} value={g.value}>{g.label}</option>
+                  ))}
+                </select>
+
+                {/* Flags */}
+                <div className="flex items-center gap-6">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-5 w-5 text-orange-500"
+                      checked={readyForCooperate}
+                      onChange={e => setReadyForCooperate(e.target.checked)}
+                    />
+                    <span className="mr-2 text-gray-200">آماده همکاری</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-5 w-5 text-orange-500"
+                      checked={lookingForMusician}
+                      onChange={e => setLookingForMusician(e.target.checked)}
+                    />
+                    <span className="mr-2 text-gray-200">پذیرای همکاری</span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Results Section */}
+      {/* Results */}
       <div>
-        {!isInitialized ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent"></div>
-            <div className="mt-2 text-lg text-orange-500">در حال بارگذاری...</div>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <div className="text-red-400 text-lg mb-4">{error}</div>
-            {retryCount >= 3 ? (
-              <div className="space-y-3">
-                <button
-                  onClick={() => window.location.reload()}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors"
-                >
-                  رفرش صفحه
-                </button>
-                <button
-                  onClick={clearCacheAndReset}
-                  className="block mx-auto bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
-                >
-                  پاک کردن کش
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={retryFetch}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors"
-              >
-                تلاش مجدد
-              </button>
-            )}
-          </div>
-        ) : results.length === 0 && !loading ? (
-          <div className="text-center py-12 text-gray-300">نتیجه‌ای یافت نشد.</div>
-        ) : (
-          <InfiniteScroll
-            dataLength={results.length}
-            next={fetchNext}
-            hasMore={hasMore}
-            loader={
-              <div className="text-center py-6">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent"></div>
-                <div className="mt-2 text-lg text-orange-500">در حال بارگذاری...</div>
-              </div>
-            }
-            endMessage={
-              <p className="text-center py-6 text-gray-400">همه نتایج نمایش داده شد.</p>
-            }
-            style={{ overflow: 'visible' }}
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {results.map(profile => (
-                <Link
-                  key={profile.id}
-                  href={`/profile/${profile.display_name}`}
-                  className="block h-full"
-                >
-                  <div className="bg-gray-800 rounded-xl flex flex-col h-full hover:shadow-lg transition border border-gray-700 cursor-pointer hover:border-orange-500">
-                    <div className="w-full relative" style={{ paddingBottom: '100%' }}>
-                      <img
-                        src={profile.avatar_url || '/default-avatar.png'}
-                        alt={profile.name}
-                        className="absolute inset-0 w-full h-full object-cover rounded-t-xl"
-                      />
-                    </div>
-                    <div className="p-4 w-full flex-1 flex flex-col min-h-[140px]">
-                      <div className="font-bold text-lg text-white mb-2 line-clamp-1">{profile.name}</div>
-                      <div className="text-sm text-gray-300 mb-2 line-clamp-1">{profile.city}، {profile.province}</div>
-                      <div className="text-sm text-gray-400 mb-auto line-clamp-1">
-                        {profile.category === 'band' ? (
-                          <span>گروه موسیقی</span>
-                        ) : (
-                          Array.isArray(profile.roles) && profile.roles.length > 0
-                            ? profile.roles.map((role: string, idx: number) => {
-                                const r = allRoles.find((ar: any) => ar.value === role);
-                                return r ? (
-                                  <span key={role}>{r.label}{idx < profile.roles.length - 1 ? ' / ' : ''}</span>
-                                ) : null;
-                              })
-                            : null
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-1 mt-2">
-                        {profile.ready_for_cooperate && (
-                          <div className="text-sm text-amber-500 font-medium line-clamp-1">آماده همکاری هستم</div>
-                        )}
-                        {profile.looking_for_musician && (
-                          <div className="text-sm text-amber-200 font-medium line-clamp-1">پذیرای همکاری هستیم</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </InfiniteScroll>
+        {error && (
+          <div className="bg-red-900 text-red-100 p-4 rounded mb-4">{error}</div>
         )}
+
+        {!loading && results.length === 0 && (
+          <div className="text-center text-gray-400">موردی یافت نشد.</div>
+        )}
+
+        <InfiniteScroll
+          dataLength={results.length}
+          next={fetchNext}
+          hasMore={hasMore}
+          loader={<div className="text-center text-gray-400 py-4">در حال بارگذاری...</div>}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {results.map((profile: any) => (
+              <Link
+                key={profile.id}
+                href={`/profile/${profile.display_name}`}
+                className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition"
+              >
+                <div className="flex items-center gap-4">
+                  <img
+                    src={profile.avatar_url || "/default-avatar.png"}
+                    alt={profile.name || profile.display_name}
+                    className="h-16 w-16 rounded-full object-cover border"
+                  />
+                  <div className="flex-1 text-right">
+                    <div className="text-lg font-semibold text-white">{profile.name || profile.display_name}</div>
+                    <div className="text-sm text-gray-400">{profile.city || ''}{profile.city && profile.province ? '، ' : ''}{profile.province || ''}</div>
+                    <div className="text-sm text-gray-400">{Array.isArray(profile.roles) ? profile.roles.map((r: string) => allRoles.find((ar: any) => ar.value === r)?.label || r).join('، ') : ''}</div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </InfiniteScroll>
       </div>
     </div>
   );
