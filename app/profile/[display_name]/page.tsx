@@ -355,7 +355,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     singer: 'خواننده',
     songWriter: 'آهنگساز',
     arranger: 'تنظیم‌کننده',
-    sound_engineer: 'صدابردار',
+    soundEngineer: 'صدابردار',
     producer: 'تهیه‌کننده',
     lyricist: 'ترانه‌سرا',
     photographer: 'عکاس/تصویربردار',
