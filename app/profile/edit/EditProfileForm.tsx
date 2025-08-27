@@ -163,7 +163,15 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
   const isMusicSchool = form.roles.includes('school')
 
   const [instrumentsLoaded, setInstrumentsLoaded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'personal' | 'extra' | 'gallery' | 'danger'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'extra' | 'gallery' | 'password' | 'danger'>('personal');
+
+  // states for password change tab
+  const [currentPassword, setCurrentPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
 
 
@@ -233,6 +241,64 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
       setDeleteError('خطا در حذف پروفایل');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // change password handler
+  const handleChangePassword = async () => {
+    try {
+      setPasswordError(null);
+      setPasswordSuccess(null);
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        setPasswordError('همه فیلدها الزامی هستند');
+        return;
+      }
+      if (newPassword.length < 8) {
+        setPasswordError('رمز جدید باید حداقل ۸ کاراکتر باشد');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setPasswordError('رمز جدید و تکرار آن یکسان نیستند');
+        return;
+      }
+      if (currentPassword === newPassword) {
+        setPasswordError('رمز جدید نباید با رمز فعلی یکسان باشد');
+        return;
+      }
+
+      setPasswordLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !user.email) {
+        setPasswordError('کاربر یافت نشد');
+        return;
+      }
+
+      // verify current password by signing in silently
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+      if (signInError) {
+        setPasswordError('رمز فعلی نادرست است');
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (updateError) {
+        setPasswordError(updateError.message || 'خطا در تغییر رمز');
+        return;
+      }
+
+      setPasswordSuccess('رمز عبور با موفقیت تغییر کرد');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (e: any) {
+      setPasswordError('خطای غیرمنتظره در تغییر رمز');
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -647,13 +713,24 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
         <button 
           type="button" 
           className={`pb-2 px-2 ${
+            activeTab === 'password' 
+              ? 'font-bold text-white bg-gray-800 border-b-2 border-gray-100' 
+              : 'text-gray-300 font-normal'
+          }`} 
+          onClick={() => setActiveTab('password')}
+        >
+          تغییر رمز عبور
+        </button>
+        <button 
+          type="button" 
+          className={`pb-2 px-2 ${
             activeTab === 'danger' 
               ? 'font-bold text-red-500 bg-gray-800 border-b-2 border-red-500' 
               : 'text-gray-300 font-normal'
           }`} 
           onClick={() => setActiveTab('danger')}
         >
-          تنظیمات خطرناک
+          حذف پروفایل
         </button>
       </div>
 
@@ -1213,10 +1290,67 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
           </div>
         </div>
       )}
+      {activeTab === 'password' && (
+        <div className="space-y-6">
+          <div className="bg-gray-700 p-6 rounded-lg border border-gray-500">
+            <h3 className="text-lg font-medium text-white mb-4">تغییر رمز عبور</h3>
+            <div className="space-y-4">
+              {passwordError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                  {passwordError}
+                </div>
+              )}
+              {passwordSuccess && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                  {passwordSuccess}
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-1">رمز فعلی</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={e => setCurrentPassword(e.target.value)}
+                  className="text-white w-full rounded-md border border-gray-500 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-gray-800"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-1">رمز جدید</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="text-white w-full rounded-md border border-gray-500 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-gray-800"
+                />
+                <p className="text-xs text-gray-400 mt-1">حداقل ۸ کاراکتر</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-1">تکرار رمز جدید</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  className="text-white w-full rounded-md border border-gray-500 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-gray-800"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleChangePassword}
+                  disabled={passwordLoading}
+                  className="bg-white text-orange-600 hover:bg-orange-50 font-bold py-2 px-4 rounded disabled:opacity-50"
+                >
+                  {passwordLoading ? 'در حال تغییر...' : 'تغییر رمز'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {activeTab === 'danger' && (
         <div className="space-y-6">
           <div className="bg-gray-700 p-6 rounded-lg border border-red-500">
-            <h3 className="text-lg font-medium text-red-500 mb-4">حذف حساب کاربری</h3>
+            <h3 className="text-lg font-medium text-red-500 mb-4">حذف پروفایل</h3>
             <p className="text-gray-300 mb-4">
               با حذف حساب کاربری، تمام اطلاعات شما به صورت دائمی حذف خواهد شد و قابل بازیابی نخواهد بود.
             </p>
