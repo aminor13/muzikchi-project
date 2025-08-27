@@ -615,6 +615,17 @@ export default function AdvancedSearch() {
                 </div>
               </div>
             </div>
+
+            {/* Submit Search */}
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => { setPage(1); fetchProfiles(1, false); }}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+              >
+                جستجو
+              </button>
+            </div>
           </div>
         </div>
       )}
