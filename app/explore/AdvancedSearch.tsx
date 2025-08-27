@@ -36,6 +36,7 @@ export default function AdvancedSearch() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const filtersDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const isInitializingRef = useRef(false);
   const isLoadingRef = useRef(false);
 
@@ -337,12 +338,22 @@ export default function AdvancedSearch() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle filter changes after initialization
+  // Handle filter changes after initialization (debounced)
   useEffect(() => {
-    if (isInitialized && !isInitializingRef.current) {
+    if (!isInitialized || isInitializingRef.current) return;
+    if (filtersDebounceRef.current) {
+      clearTimeout(filtersDebounceRef.current);
+    }
+    filtersDebounceRef.current = setTimeout(() => {
       setPage(1);
       fetchProfiles(1, false);
-    }
+    }, 350);
+    return () => {
+      if (filtersDebounceRef.current) {
+        clearTimeout(filtersDebounceRef.current);
+        filtersDebounceRef.current = null;
+      }
+    };
   }, [isInitialized, province, city, role, gender, category, name, readyForCooperate, lookingForMusician, instrument]);
 
   // Cleanup effect
@@ -351,6 +362,10 @@ export default function AdvancedSearch() {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
+      }
+      if (filtersDebounceRef.current) {
+        clearTimeout(filtersDebounceRef.current);
+        filtersDebounceRef.current = null;
       }
     };
   }, []);
