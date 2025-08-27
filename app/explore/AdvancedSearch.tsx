@@ -114,8 +114,16 @@ export default function AdvancedSearch() {
           )
           .eq('is_complete', true)
           .not('avatar_url', 'is', null)
-          .neq('avatar_url', '')
-          .limit(PAGE_SIZE);
+          .neq('avatar_url', '');
+        
+        // Stable ordering for pagination
+        // Prefer updated_at if exists; fallback to created_at then display_name
+        query = query.order('updated_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).order('display_name', { ascending: true });
+
+        // Calculate pagination range
+        const start = (pageNum - 1) * PAGE_SIZE;
+        const end = start + PAGE_SIZE - 1;
+        query = query.range(start, end);
         
         // Test count query first
         console.log('Testing count query...');
@@ -303,30 +311,30 @@ export default function AdvancedSearch() {
         setGender(genderParam || "");
         setCategory(categoryParam || "");
         setName(nameParam || "");
-        setReadyForCooperate(readyParam === 'true');
-        setLookingForMusician(lookingParam === 'true');
+        setReadyForCooperate(readyParam === '1');
+        setLookingForMusician(lookingParam === '1');
         setInstrument(instrumentParam || "");
+        setShowSearchForm(showSearchFormParam === '1');
 
-        if (showSearchFormParam === 'true') {
-          setShowSearchForm(true);
-        }
-
-        console.log('States set, marking as initialized...');
-        setIsInitialized(true);
-        
-        // Fetch initial data
-        console.log('Starting initial data fetch...');
-        setPage(1);
+        // Initial fetch
         await fetchProfiles(1, false);
-        console.log('Initial data fetch completed');
-      } catch (error) {
-        console.error('Initialization error:', error);
-        setError("خطا در مقداردهی اولیه. لطفاً صفحه را رفرش کنید.");
+        setIsInitialized(true);
+      } catch (e) {
+        console.error('Initialization failed:', e);
       }
     };
 
     initializeAndFetch();
-  }, [searchParams]);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      isInitializingRef.current = false;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handle filter changes after initialization
   useEffect(() => {
