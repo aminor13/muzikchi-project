@@ -118,8 +118,8 @@ export default function AdvancedSearch() {
           .neq('avatar_url', '');
         
         // Stable ordering for pagination (apply after filters too)
-        // Prefer updated_at if exists; fallback to created_at then display_name
-        query = query.order('updated_at', { ascending: false }).order('created_at', { ascending: false }).order('display_name', { ascending: true });
+        // Prefer updated_at; then display_name
+        query = query.order('updated_at', { ascending: false }).order('display_name', { ascending: true });
 
         // Defer range application until after filters are applied
         
