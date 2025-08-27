@@ -36,6 +36,7 @@ export default function AdvancedSearch() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const filtersDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const isInitializingRef = useRef(false);
   const isLoadingRef = useRef(false);
 
@@ -116,14 +117,11 @@ export default function AdvancedSearch() {
           .not('avatar_url', 'is', null)
           .neq('avatar_url', '');
         
-        // Stable ordering for pagination
-        // Prefer updated_at if exists; fallback to created_at then display_name
-        query = query.order('updated_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).order('display_name', { ascending: true });
+        // Stable ordering for pagination (apply after filters too)
+        // Prefer updated_at; then display_name
+        query = query.order('updated_at', { ascending: false }).order('display_name', { ascending: true });
 
-        // Calculate pagination range
-        const start = (pageNum - 1) * PAGE_SIZE;
-        const end = start + PAGE_SIZE - 1;
-        query = query.range(start, end);
+        // Defer range application until after filters are applied
         
         // Test count query first
         console.log('Testing count query...');
@@ -183,6 +181,10 @@ export default function AdvancedSearch() {
             query = query.eq('profile_instruments.type', role);
           }
         }
+        // Calculate pagination range after filters
+        const start = (pageNum - 1) * PAGE_SIZE;
+        const end = start + PAGE_SIZE - 1;
+        query = query.range(start, end);
         
         console.log('Final query before execution:', query);
         console.log('Executing query...');
@@ -336,12 +338,22 @@ export default function AdvancedSearch() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle filter changes after initialization
+  // Handle filter changes after initialization (debounced)
   useEffect(() => {
-    if (isInitialized && !isInitializingRef.current) {
+    if (!isInitialized || isInitializingRef.current) return;
+    if (filtersDebounceRef.current) {
+      clearTimeout(filtersDebounceRef.current);
+    }
+    filtersDebounceRef.current = setTimeout(() => {
       setPage(1);
       fetchProfiles(1, false);
-    }
+    }, 350);
+    return () => {
+      if (filtersDebounceRef.current) {
+        clearTimeout(filtersDebounceRef.current);
+        filtersDebounceRef.current = null;
+      }
+    };
   }, [isInitialized, province, city, role, gender, category, name, readyForCooperate, lookingForMusician, instrument]);
 
   // Cleanup effect
@@ -350,6 +362,10 @@ export default function AdvancedSearch() {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
+      }
+      if (filtersDebounceRef.current) {
+        clearTimeout(filtersDebounceRef.current);
+        filtersDebounceRef.current = null;
       }
     };
   }, []);
@@ -380,7 +396,7 @@ export default function AdvancedSearch() {
           
           <button
             onClick={() => setShowSearchForm(!showSearchForm)}
-            className="flex items-center gap-2 bg-white text-orange-500 hover:bg-orange-50 px-4 py-2 rounded-lg font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-white text-orange-500 hover:bg-orange-50 px-4 py-2 rounded-lg font-medium transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -509,7 +525,7 @@ export default function AdvancedSearch() {
                   >
                     <option value="">همه شهرها</option>
                     {cities.map((c: any) => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c["city-en"]} value={c["city-fa"]}>{c["city-fa"]}</option>
                     ))}
                   </select>
                 </div>
@@ -609,6 +625,17 @@ export default function AdvancedSearch() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Submit Search */}
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => { setPage(1); fetchProfiles(1, false); }}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+              >
+                جستجو
+              </button>
             </div>
           </div>
         </div>

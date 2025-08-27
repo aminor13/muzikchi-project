@@ -54,25 +54,16 @@ export default function BandMembersManagement({ bandId }: { bandId: string }) {
         .select('id, display_name, name, avatar_url, roles')
         .neq('category', 'band')
         .eq('ready_for_cooperate', true)
-        .or('roles.cs.{musician},roles.cs.{vocalist}')
+        .overlaps('roles', ['musician','vocalist'])
         .or(`display_name.ilike.%${query}%,name.ilike.%${query}%`)
-        .limit(5)
+        .limit(20)
 
       if (error) {
         console.error('Error searching musicians:', error)
         return
       }
 
-      const filteredData = (data || []).filter((profile: SearchProfile) =>
-        profile && 
-        profile.display_name && 
-        (profile.display_name.toLowerCase().includes(query.toLowerCase()) ||
-        (profile.name && profile.name.toLowerCase().includes(query.toLowerCase()))) &&
-        profile.roles && 
-        (profile.roles.includes('musician') || profile.roles.includes('vocalist'))
-      )
-
-      setSearchResults(filteredData)
+      setSearchResults((data || []) as unknown as SearchProfile[])
     } catch (error) {
       console.error('Search error:', error)
     } finally {
