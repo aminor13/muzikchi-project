@@ -597,6 +597,17 @@ export default function AdvancedSearch() {
                     <span className="mr-2 text-gray-200">پذیرای همکاری</span>
                   </label>
                 </div>
+
+                {/* Search Button */}
+                <div className="pt-4">
+                  <button
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors"
+                    type="button"
+                    onClick={() => fetchProfiles(1, false)}
+                  >
+                  جستجو
+                  </button>
+                </div>
               </div>
             </div>
           </div>
