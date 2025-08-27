@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 export default function Header() {
   //console.log('Header: Rendering')
@@ -43,8 +43,8 @@ export default function Header() {
     checkAdminStatus()
   }, [user, supabase])
 
-  // Load pending counts for relevant actions
-  useEffect(() => {
+  // Memoized loader for pending counts
+  const loadPendingCounts = useCallback(async () => {
     if (!user || !profile) {
       setPendingBandRequestsCount(0)
       setPendingBandInvitesCount(0)
@@ -52,59 +52,104 @@ export default function Header() {
       return
     }
 
-    // Derive category and roles as plain strings to avoid TS union mismatches
-    const category = (profile as any)?.category as string | undefined
-    const roles = Array.isArray((profile as any)?.roles) ? ((profile as any)?.roles as string[]) : []
+    try {
+      const category = (profile as any)?.category as string | undefined
+      const roles = Array.isArray((profile as any)?.roles) ? ((profile as any)?.roles as string[]) : []
+      const isBand = category === 'band'
+      const isSchool = category === 'place' && roles.includes('school')
+      const isMusicianOrVocalist = roles.some((r: string) => ['musician', 'vocalist'].includes(r))
+      const isTeacher = roles.includes('teacher')
 
-    const isBand = category === 'band'
-    const isSchool = category === 'place' && roles.includes('school')
-    const isMusicianOrVocalist = roles.some((r: string) => ['musician', 'vocalist'].includes(r))
-    const isTeacher = roles.includes('teacher')
-
-    const fetchCounts = async () => {
-      try {
-        // Pending requests to join my band (if I am a band)
-        if (isBand && (profile as any).id) {
-          const { count } = await supabase
-            .from('band_members')
-            .select('id', { count: 'exact', head: true })
-            .eq('band_id', (profile as any).id)
-            .eq('status', 'requested')
-          setPendingBandRequestsCount(count || 0)
-        } else {
-          setPendingBandRequestsCount(0)
-        }
-
-        // Pending band invites sent to me (if I am musician/vocalist and not a band or school)
-        if (isMusicianOrVocalist && !isBand && !isSchool && user.id) {
-          const { count } = await supabase
-            .from('band_members')
-            .select('id', { count: 'exact', head: true })
-            .eq('member_id', user.id)
-            .eq('status', 'pending')
-          setPendingBandInvitesCount(count || 0)
-        } else {
-          setPendingBandInvitesCount(0)
-        }
-
-        // Pending school invites sent to me (if I am a teacher)
-        if (isTeacher && user.id) {
-          const { count } = await supabase
-            .from('school_teachers')
-            .select('id', { count: 'exact', head: true })
-            .eq('teacher_id', user.id)
-            .eq('status', 'pending')
-          setPendingSchoolInvitesCount(count || 0)
-        } else {
-          setPendingSchoolInvitesCount(0)
-        }
-      } catch (e) {
-        console.error('Error loading pending counts:', e)
+      // Pending requests to join my band (if I am a band)
+      if (isBand && (profile as any).id) {
+        const { count } = await supabase
+          .from('band_members')
+          .select('id', { count: 'exact', head: true })
+          .eq('band_id', (profile as any).id)
+          .eq('status', 'requested')
+        setPendingBandRequestsCount(count || 0)
+      } else {
+        setPendingBandRequestsCount(0)
       }
+
+      // Pending band invites sent to me (if I am musician/vocalist and not a band or school)
+      if (isMusicianOrVocalist && !isBand && !isSchool && user.id) {
+        const { count } = await supabase
+          .from('band_members')
+          .select('id', { count: 'exact', head: true })
+          .eq('member_id', user.id)
+          .eq('status', 'pending')
+        setPendingBandInvitesCount(count || 0)
+      } else {
+        setPendingBandInvitesCount(0)
+      }
+
+      // Pending school invites sent to me (if I am a teacher)
+      if (isTeacher && user.id) {
+        const { count } = await supabase
+          .from('school_teachers')
+          .select('id', { count: 'exact', head: true })
+          .eq('teacher_id', user.id)
+          .eq('status', 'pending')
+        setPendingSchoolInvitesCount(count || 0)
+      } else {
+        setPendingSchoolInvitesCount(0)
+      }
+    } catch (e) {
+      console.error('Error loading pending counts:', e)
+    }
+  }, [user, profile, supabase])
+
+  // Initial load and on user/profile change
+  useEffect(() => {
+    loadPendingCounts()
+  }, [loadPendingCounts])
+
+  // Subscribe to realtime changes affecting invite counts
+  useEffect(() => {
+    if (!user) return
+
+    const channels = [] as any[]
+
+    // Changes to invites sent to me (band_members where I am member)
+    channels.push(
+      supabase
+        .channel(`hdr-band-members-member-${user.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'band_members', filter: `member_id=eq.${user.id}` }, () => {
+          loadPendingCounts()
+        })
+        .subscribe()
+    )
+
+    // Changes to requests to my band (band_members where I am band)
+    const bandId = (profile as any)?.id as string | undefined
+    if (bandId && (profile as any)?.category === 'band') {
+      channels.push(
+        supabase
+          .channel(`hdr-band-members-band-${bandId}`)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'band_members', filter: `band_id=eq.${bandId}` }, () => {
+            loadPendingCounts()
+          })
+          .subscribe()
+      )
     }
 
-    fetchCounts()
-  }, [user, profile, supabase])
+    // Changes to teacher invites (school_teachers where I am teacher)
+    channels.push(
+      supabase
+        .channel(`hdr-school-teachers-${user.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'school_teachers', filter: `teacher_id=eq.${user.id}` }, () => {
+          loadPendingCounts()
+        })
+        .subscribe()
+    )
+
+    return () => {
+      channels.forEach((ch) => {
+        try { supabase.removeChannel(ch) } catch {}
+      })
+    }
+  }, [user, profile, supabase, loadPendingCounts])
 
   ///console.log('Header: Current user:', user)
 
