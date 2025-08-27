@@ -53,6 +53,7 @@ export default function BandMembersManagement({ bandId }: { bandId: string }) {
         .from('profiles')
         .select('id, display_name, name, avatar_url, roles')
         .neq('category', 'band')
+        .eq('ready_for_cooperate', true)
         .overlaps('roles', ['musician','vocalist'])
         .or(`display_name.ilike.%${query}%,name.ilike.%${query}%`)
         .limit(20)
