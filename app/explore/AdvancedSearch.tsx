@@ -116,14 +116,11 @@ export default function AdvancedSearch() {
           .not('avatar_url', 'is', null)
           .neq('avatar_url', '');
         
-        // Stable ordering for pagination
+        // Stable ordering for pagination (apply after filters too)
         // Prefer updated_at if exists; fallback to created_at then display_name
-        query = query.order('updated_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).order('display_name', { ascending: true });
+        query = query.order('updated_at', { ascending: false }).order('created_at', { ascending: false }).order('display_name', { ascending: true });
 
-        // Calculate pagination range
-        const start = (pageNum - 1) * PAGE_SIZE;
-        const end = start + PAGE_SIZE - 1;
-        query = query.range(start, end);
+        // Defer range application until after filters are applied
         
         // Test count query first
         console.log('Testing count query...');
@@ -183,6 +180,10 @@ export default function AdvancedSearch() {
             query = query.eq('profile_instruments.type', role);
           }
         }
+        // Calculate pagination range after filters
+        const start = (pageNum - 1) * PAGE_SIZE;
+        const end = start + PAGE_SIZE - 1;
+        query = query.range(start, end);
         
         console.log('Final query before execution:', query);
         console.log('Executing query...');
