@@ -330,9 +330,11 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
         ready_for_cooperate: (initialProfile as any).ready_for_cooperate ?? false,
         looking_for_musician: (initialProfile as any).looking_for_musician ?? false
       });
-      const initLat = (initialProfile as any).latitude ?? (initialProfile as any).latitide ?? (initialProfile as any).latutude
-      const initLng = (initialProfile as any).longitude
-      if (typeof initLat === 'number' && typeof initLng === 'number') {
+      const rawLat = (initialProfile as any).latitude
+      const rawLng = (initialProfile as any).longitude
+      const initLat = typeof rawLat === 'string' ? parseFloat(rawLat) : rawLat
+      const initLng = typeof rawLng === 'string' ? parseFloat(rawLng) : rawLng
+      if (typeof initLat === 'number' && !Number.isNaN(initLat) && typeof initLng === 'number' && !Number.isNaN(initLng)) {
         setSelectedLatLng({ lat: initLat, lng: initLng })
       }
       // مقداردهی اولیه cities
@@ -444,34 +446,35 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('کاربر یافت نشد')
       // آپدیت پروفایل با avatar_url
+      const updatePayload: any = {
+        name: form.name,
+        gender: form.gender,
+        birth_year: form.birth_year ? parseInt(form.birth_year) : null,
+        province: form.province,
+        city: form.city,
+        avatar_url: form.avatar_url,
+        description: form.description,
+        phone: form.phone,
+        address: form.address,
+        category: form.category,
+        roles: form.roles,
+        performance_count: form.performance_count || null,
+        music_experience: form.music_experience ? parseInt(form.music_experience) : null,
+        equipments: form.equipments || null,
+        website: form.website || null,
+        social_links: form.social_links || {},
+        ready_for_cooperate: form.ready_for_cooperate,
+        looking_for_musician: form.looking_for_musician,
+        is_complete: true
+      }
+      if (selectedLatLng) {
+        updatePayload.latitude = selectedLatLng.lat
+        updatePayload.longitude = selectedLatLng.lng
+      }
+
       await supabase
         .from('profiles')
-        .update({
-          name: form.name,
-          gender: form.gender,
-          birth_year: form.birth_year ? parseInt(form.birth_year) : null,
-          province: form.province,
-          city: form.city,
-          avatar_url: form.avatar_url,
-          description: form.description,
-          phone: form.phone,
-          address: form.address,
-          category: form.category,
-          roles: form.roles,
-          performance_count: form.performance_count || null,
-          music_experience: form.music_experience ? parseInt(form.music_experience) : null,
-          equipments: form.equipments || null,
-          website: form.website || null,
-          social_links: form.social_links || {},
-          ready_for_cooperate: form.ready_for_cooperate,
-          looking_for_musician: form.looking_for_musician,
-          latitude: selectedLatLng ? selectedLatLng.lat : null,
-          // handle legacy/typo columns too if exist
-          latitide: selectedLatLng ? (selectedLatLng as any).lat : null,
-          latutude: selectedLatLng ? (selectedLatLng as any).lat : null,
-          longitude: selectedLatLng ? selectedLatLng.lng : null,
-          is_complete: true
-        })
+        .update(updatePayload)
         .eq('id', user.id)
       // حذف و درج مجدد سازها
       await supabase.from('profile_instruments').delete().eq('profile_id', user.id).eq('type', 'musician');
