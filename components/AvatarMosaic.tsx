@@ -31,6 +31,7 @@ function getLayoutByViewport(width: number, height: number): { cols: number; row
 export default function AvatarMosaic() {
   const [avatars, setAvatars] = useState<AvatarItem[]>([])
   const [cols, setCols] = useState<number>(3)
+  const [rows, setRows] = useState<number>(2)
 
   useEffect(() => {
     let isMounted = true
@@ -42,6 +43,7 @@ export default function AvatarMosaic() {
         const height = window.innerHeight
         const { cols, rows } = getLayoutByViewport(width, height)
         setCols(cols)
+        setRows(rows)
 
         // Fetch a pool larger than needed for randomness
         const { data, error } = await supabase
@@ -105,18 +107,19 @@ export default function AvatarMosaic() {
         {avatars.map((a, idx) => (
           <div
             key={`${a.url}-${idx}`}
-            className="relative w-full h-full min-h-24 sm:min-h-28 md:min-h-32 lg:min-h-36 overflow-hidden rounded-md"
+            className="relative w-full overflow-hidden rounded-md"
             style={{
               transform: `rotate(${a.rotationDeg}deg) translate(${a.translateX}px, ${a.translateY}px)`,
+              aspectRatio: '3 / 4',
             }}
           >
             <Image
               src={`${a.url}?width=320&quality=60`}
               alt="avatar"
               fill
-              sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              sizes="(max-width: 640px) 30vw, (max-width: 1024px) 22vw, 18vw"
               quality={60}
-              className="object-cover filter grayscale"
+              className="object-cover object-[center_top] filter grayscale"
               priority
             />
           </div>
