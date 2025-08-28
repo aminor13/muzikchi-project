@@ -168,7 +168,8 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
   const [isMapOpen, setIsMapOpen] = useState<boolean>(false)
   const [selectedLatLng, setSelectedLatLng] = useState<{ lat: number; lng: number } | null>(null)
 
-  const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
+  // Switchable map picker (Google Maps). To fallback to Leaflet, import './MapPicker' instead.
+  const MapPicker = dynamic(() => import('./MapPickerGoogle'), { ssr: false })
 
   // states for password change tab
   const [currentPassword, setCurrentPassword] = useState<string>('');
