@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 
 type AvatarItem = {
@@ -10,18 +11,26 @@ type AvatarItem = {
   translateY: number
 }
 
-function getTargetCountByWidth(width: number): number {
-  if (width < 640) {
-    return 5 + Math.floor(Math.random() * 2) // 5-6
+function getLayoutByViewport(width: number, height: number): { cols: number; rows: number } {
+  if (width >= 1280 && height > 800) {
+    // Tall desktop -> 3 rows, odd cols so total is odd (e.g., 3x3=9)
+    return { cols: 3, rows: 3 }
   }
   if (width >= 1024) {
-    return 8 + Math.floor(Math.random() * 3) // 8-10
+    // Desktop -> 2 rows of 5 = 10 tiles
+    return { cols: 5, rows: 2 }
   }
-  return 6 + Math.floor(Math.random() * 3) // 6-8 for tablet
+  if (width >= 640) {
+    // Tablet -> 2 rows of 4 = 8 tiles
+    return { cols: 4, rows: 2 }
+  }
+  // Mobile -> 2 rows of 3 = 6 tiles (within requested 5-6)
+  return { cols: 3, rows: 2 }
 }
 
 export default function AvatarMosaic() {
   const [avatars, setAvatars] = useState<AvatarItem[]>([])
+  const [cols, setCols] = useState<number>(3)
 
   useEffect(() => {
     let isMounted = true
@@ -30,7 +39,9 @@ export default function AvatarMosaic() {
     const run = async () => {
       try {
         const width = window.innerWidth
-        const targetCount = getTargetCountByWidth(width)
+        const height = window.innerHeight
+        const { cols, rows } = getLayoutByViewport(width, height)
+        setCols(cols)
 
         // Fetch a pool larger than needed for randomness
         const { data, error } = await supabase
@@ -52,7 +63,8 @@ export default function AvatarMosaic() {
           ;[pool[i], pool[j]] = [pool[j], pool[i]]
         }
 
-        const selected = pool.slice(0, Math.max(5, targetCount))
+        const targetCount = Math.max(1, cols * rows)
+        const selected = pool.slice(0, targetCount)
 
         const items: AvatarItem[] = selected.map((url: string) => ({
           url,
@@ -74,16 +86,22 @@ export default function AvatarMosaic() {
     }
   }, [])
 
-  const gridTemplate = useMemo(() => {
-    // Responsive columns with fairly large tiles to roughly match hero background
-    // We rely on container size; each cell is square and fills area.
-    return "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-6"
-  }, [])
+  const gridColsClass = useMemo(() => {
+    const map: Record<number, string> = {
+      1: "grid-cols-1",
+      2: "grid-cols-2",
+      3: "grid-cols-3",
+      4: "grid-cols-4",
+      5: "grid-cols-5",
+      6: "grid-cols-6",
+    }
+    return map[cols] || "grid-cols-3"
+  }, [cols])
 
   return (
     <div className="absolute inset-0">
       {/* Mosaic */}
-      <div className={`absolute inset-0 grid ${gridTemplate} gap-2 p-2`}>
+      <div className={`absolute inset-0 grid ${gridColsClass} gap-2 p-2`}>
         {avatars.map((a, idx) => (
           <div
             key={`${a.url}-${idx}`}
@@ -92,12 +110,14 @@ export default function AvatarMosaic() {
               transform: `rotate(${a.rotationDeg}deg) translate(${a.translateX}px, ${a.translateY}px)`,
             }}
           >
-            <img
-              src={a.url}
+            <Image
+              src={`${a.url}?width=320&quality=60`}
               alt="avatar"
-              className="w-full h-full object-cover filter grayscale"
-              loading="eager"
-              decoding="async"
+              fill
+              sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              quality={60}
+              className="object-cover filter grayscale"
+              priority
             />
           </div>
         ))}
