@@ -12,20 +12,12 @@ type AvatarItem = {
 }
 
 function getLayoutByViewport(width: number, height: number): { cols: number; rows: number } {
-  if (width >= 1280 && height > 800) {
-    // Tall desktop -> 3 rows, odd cols so total is odd (e.g., 3x3=9)
-    return { cols: 3, rows: 3 }
-  }
   if (width >= 1024) {
-    // Desktop -> 2 rows of 5 = 10 tiles
+    // Desktop: 2 rows x 5 columns
     return { cols: 5, rows: 2 }
   }
-  if (width >= 640) {
-    // Tablet -> 2 rows of 4 = 8 tiles
-    return { cols: 4, rows: 2 }
-  }
-  // Mobile -> 2 rows of 3 = 6 tiles (within requested 5-6)
-  return { cols: 3, rows: 2 }
+  // Tablet & Mobile: 3 rows x 3 columns
+  return { cols: 3, rows: 3 }
 }
 
 export default function AvatarMosaic() {
@@ -127,7 +119,7 @@ export default function AvatarMosaic() {
       </div>
 
       {/* Dark overlay so white text is readable */}
-      <div className="absolute inset-0 bg-gray-900/60" />
+      <div className="absolute inset-0 bg-gray-900/75" />
     </div>
   )
 }
