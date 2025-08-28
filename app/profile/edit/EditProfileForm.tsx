@@ -330,7 +330,7 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
         ready_for_cooperate: (initialProfile as any).ready_for_cooperate ?? false,
         looking_for_musician: (initialProfile as any).looking_for_musician ?? false
       });
-      const initLat = (initialProfile as any).latitude ?? (initialProfile as any).latitide
+      const initLat = (initialProfile as any).latitude ?? (initialProfile as any).latitide ?? (initialProfile as any).latutude
       const initLng = (initialProfile as any).longitude
       if (typeof initLat === 'number' && typeof initLng === 'number') {
         setSelectedLatLng({ lat: initLat, lng: initLng })
@@ -466,8 +466,9 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
           ready_for_cooperate: form.ready_for_cooperate,
           looking_for_musician: form.looking_for_musician,
           latitude: selectedLatLng ? selectedLatLng.lat : null,
-          // handle legacy/typo column too if exists
+          // handle legacy/typo columns too if exist
           latitide: selectedLatLng ? (selectedLatLng as any).lat : null,
+          latutude: selectedLatLng ? (selectedLatLng as any).lat : null,
           longitude: selectedLatLng ? selectedLatLng.lng : null,
           is_complete: true
         })
