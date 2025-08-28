@@ -2,6 +2,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import AvatarMosaic from '@/components/AvatarMosaic'
 import QuickSearch from '@/components/QuickSearch'
 import FeaturedProfiles from '@/components/FeaturedProfiles'
 import UpcomingEvents from '@/components/UpcomingEvents'
@@ -60,16 +61,8 @@ export default function Home() {
     <main className="min-h-screen bg-gray-900">
       {/* Hero Section */}
       <section className="relative min-h-[600px] overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <img
-            src="/images/piano4-unsplash.jpg"
-            alt="Music Studio"
-            className="object-cover w-full h-full"
-          />
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/95 via-gray-900/70 to-gray-900/50"></div>
-        </div>
+        {/* Background Avatar Mosaic */}
+        <AvatarMosaic />
         
         {/* Content */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
