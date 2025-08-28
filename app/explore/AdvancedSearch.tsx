@@ -111,7 +111,7 @@ export default function AdvancedSearch() {
           .select(
             instrument
               ? "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician, profile_instruments!inner(instrument_id, type)"
-              : "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician"
+              : "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician, profile_instruments(instrument_id, type)"
           )
           .eq('is_complete', true)
           .not('avatar_url', 'is', null)
@@ -675,7 +675,18 @@ export default function AdvancedSearch() {
                     <div className="flex-1 text-right">
                       <div className="text-lg font-semibold text-white">{profile.name || profile.display_name}</div>
                       <div className="text-sm text-gray-400">{profile.city || ''}{profile.city && profile.province ? '، ' : ''}{profile.province || ''}</div>
-                      <div className="text-sm text-gray-400">{Array.isArray(profile.roles) ? profile.roles.map((r: string) => allRoles.find((ar: any) => ar.value === r)?.label || r).join('، ') : ''}</div>
+                      <div className="text-sm text-gray-400">{Array.isArray(profile.roles) ? profile.roles.map((r: string) => {
+                        const roleObj = allRoles.find((ar: any) => ar.value === r);
+                        let label = roleObj ? roleObj.label : r;
+                        if ((r === 'musician' || r === 'teacher') && Array.isArray((profile as any).profile_instruments) && (profile as any).profile_instruments.length > 0) {
+                          const firstInst = (profile as any).profile_instruments.find((pi: any) => pi.type === r) || (profile as any).profile_instruments[0];
+                          if (firstInst?.instrument_id) {
+                            const instName = allInstruments.find(i => i.id === firstInst.instrument_id)?.name || firstInst.instrument_id;
+                            label = `${label}${instName ? ` (${instName})` : ''}`;
+                          }
+                        }
+                        return label;
+                      }).join('، ') : ''}</div>
                     </div>
                   </div>
                 </div>
@@ -699,7 +710,14 @@ export default function AdvancedSearch() {
                         Array.isArray(profile.roles) && profile.roles.length > 0
                           ? profile.roles.map((r: string, idx: number) => {
                               const roleObj = allRoles.find((ar: any) => ar.value === r);
-                              const label = roleObj ? roleObj.label : r;
+                              let label = roleObj ? roleObj.label : r;
+                              if ((r === 'musician' || r === 'teacher') && Array.isArray((profile as any).profile_instruments) && (profile as any).profile_instruments.length > 0) {
+                                const firstInst = (profile as any).profile_instruments.find((pi: any) => pi.type === r) || (profile as any).profile_instruments[0];
+                                if (firstInst?.instrument_id) {
+                                  const instName = allInstruments.find(i => i.id === firstInst.instrument_id)?.name || firstInst.instrument_id;
+                                  label = `${label}${instName ? ` (${instName})` : ''}`;
+                                }
+                              }
                               return <span key={r}>{label}{idx < profile.roles.length - 1 ? ' / ' : ''}</span>;
                             })
                           : null
