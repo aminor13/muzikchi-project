@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Database } from '@/types/supabase'
@@ -164,6 +165,10 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
 
   const [instrumentsLoaded, setInstrumentsLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<'personal' | 'extra' | 'gallery' | 'password' | 'danger'>('personal');
+  const [isMapOpen, setIsMapOpen] = useState<boolean>(false)
+  const [selectedLatLng, setSelectedLatLng] = useState<{ lat: number; lng: number } | null>(null)
+
+  const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 
   // states for password change tab
   const [currentPassword, setCurrentPassword] = useState<string>('');
@@ -325,6 +330,11 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
         ready_for_cooperate: (initialProfile as any).ready_for_cooperate ?? false,
         looking_for_musician: (initialProfile as any).looking_for_musician ?? false
       });
+      const initLat = (initialProfile as any).latitude ?? (initialProfile as any).latitide
+      const initLng = (initialProfile as any).longitude
+      if (typeof initLat === 'number' && typeof initLng === 'number') {
+        setSelectedLatLng({ lat: initLat, lng: initLng })
+      }
       // مقداردهی اولیه cities
       if (initialProfile.province) {
         const provinceData = provinces.find(p => p.id === initialProfile.province);
@@ -455,6 +465,10 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
           social_links: form.social_links || {},
           ready_for_cooperate: form.ready_for_cooperate,
           looking_for_musician: form.looking_for_musician,
+          latitude: selectedLatLng ? selectedLatLng.lat : null,
+          // handle legacy/typo column too if exists
+          latitide: selectedLatLng ? (selectedLatLng as any).lat : null,
+          longitude: selectedLatLng ? selectedLatLng.lng : null,
           is_complete: true
         })
         .eq('id', user.id)
@@ -820,6 +834,18 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
                 <option value="">انتخاب کنید</option>
                 {cities.map((city) => (<option key={city.id} value={city.id}>{city.name}</option>))}
               </select>
+              {form.category === 'place' && (
+                <div className="mt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsMapOpen(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-3 rounded"
+                    disabled={!form.city}
+                  >
+                    انتخاب روی نقشه
+                  </button>
+                </div>
+              )}
             </div>
             {/* توضیحات */}
             <div>
@@ -1402,6 +1428,35 @@ export default function EditProfileForm({ userId, initialProfile, provinces, cat
           {loading ? 'در حال ذخیره...' : 'ذخیره'}
         </button>
       </div>
+
+      {isMapOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-50" onClick={() => setIsMapOpen(false)}></div>
+          <div className="relative bg-gray-900 w-full max-w-3xl h-[70vh] rounded-lg shadow-lg border border-gray-700">
+            <div className="flex items-center justify-between p-3 border-b border-gray-700">
+              <h3 className="text-white text-sm font-semibold">انتخاب مکان روی نقشه</h3>
+              <button onClick={() => setIsMapOpen(false)} className="text-gray-300 hover:text-white">✕</button>
+            </div>
+            <div className="h-[calc(70vh-52px)]">
+              <MapPicker
+                province={form.province}
+                city={form.city}
+                initialPosition={selectedLatLng || undefined}
+                onSelect={(latlng) => setSelectedLatLng(latlng)}
+              />
+            </div>
+            <div className="p-3 border-t border-gray-700 flex items-center justify-between">
+              <div className="text-xs text-gray-300">
+                {selectedLatLng ? `lat: ${selectedLatLng.lat.toFixed(6)}, lng: ${selectedLatLng.lng.toFixed(6)}` : 'نقطه‌ای انتخاب نشده است'}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setIsMapOpen(false)} type="button" className="px-3 py-2 rounded bg-gray-700 text-white text-sm">بستن</button>
+                <button onClick={() => setIsMapOpen(false)} type="button" className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm">تایید</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 } 
