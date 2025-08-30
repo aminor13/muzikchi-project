@@ -33,6 +33,22 @@ export default function ProfileDebugInfo({
     console.log('Profile ID:', profile?.id)
     console.log('Profile Display Name:', profile?.display_name)
     
+    // Additional profile analysis
+    if (profile?.category === 'band') {
+      console.log('🔍 BAND ANALYSIS:')
+      console.log('- This is a band profile')
+      console.log('- Should show band members and collaborations')
+      console.log('- Roles array is empty, which might be the issue')
+    } else if (profile?.roles?.includes('teacher')) {
+      console.log('🔍 TEACHER ANALYSIS:')
+      console.log('- This is a teacher profile')
+      console.log('- Should show school memberships')
+    } else if (profile?.roles?.some((role: string) => ['musician', 'vocalist'].includes(role))) {
+      console.log('🔍 MUSICIAN/VOCALIST ANALYSIS:')
+      console.log('- This is a musician/vocalist profile')
+      console.log('- Should show band memberships')
+    }
+    
     console.log('=== BAND MEMBERS ===')
     console.log('Band Members:', bandMembers)
     console.log('Band Members Length:', bandMembers?.length || 0)

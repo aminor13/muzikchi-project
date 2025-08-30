@@ -71,6 +71,22 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   });
   
   console.log('Full profile object:', JSON.stringify(profile, null, 2));
+  
+  // Check if roles field is empty and suggest fix
+  if (!profile.roles || profile.roles.length === 0) {
+    console.warn('⚠️ WARNING: Profile roles array is empty!');
+    console.warn('This might be causing issues with displaying memberships.');
+    console.warn('Check if the profiles table has the correct roles data.');
+    
+    // Try to determine what roles this profile should have based on category
+    if (profile.category === 'band') {
+      console.log('💡 SUGGESTION: This band profile should probably have roles like ["band"]');
+    } else if (profile.category === 'place' && profile.roles?.includes('school')) {
+      console.log('💡 SUGGESTION: This school profile should probably have roles like ["school"]');
+    } else if (profile.category === 'person') {
+      console.log('💡 SUGGESTION: This person profile should probably have roles like ["musician", "teacher"]');
+    }
+  }
 
   // Get upcoming events for this profile
   let upcomingEvents: any[] = [];
@@ -152,6 +168,19 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   let bandMembers = null;
   if (profile?.category === 'band') {
     console.log('Fetching band members for profile:', profile.id);
+    
+    // First, let's check if there are any band_members records at all
+    const { data: allBandMembers, error: allBandMembersError } = await supabase
+      .from('band_members')
+      .select('*')
+      .limit(5);
+    
+    if (allBandMembersError) {
+      console.error('Error fetching all band members:', allBandMembersError);
+    } else {
+      console.log('Sample of all band_members records:', allBandMembers);
+    }
+    
     const { data: members, error: membersError } = await supabase
       .from('band_members')
       .select(`
@@ -176,33 +205,77 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     bandMembers = members;
   }
 
-  // Get band memberships if profile is a musician/vocalist
+  // Get band memberships if profile is a musician/vocalist OR if it's a band (to show collaborations)
   let bandMemberships = null;
-  if (profile?.roles?.some((role: string) => ['musician', 'vocalist'].includes(role))) {
+  if (profile?.roles?.some((role: string) => ['musician', 'vocalist'].includes(role)) || profile?.category === 'band') {
     console.log('Fetching band memberships for profile:', profile.id);
     console.log('Profile roles:', profile.roles);
-    const { data: memberships, error: membershipsError } = await supabase
-      .from('band_members')
-      .select(`
-        id,
-        band:profiles!band_id(
+    console.log('Profile category:', profile.category);
+    
+    if (profile?.category === 'band') {
+      // For bands, show collaborations with other bands
+      console.log('Profile is a band, fetching collaborations...');
+      
+      // First, let's check if there are any band_members records where this band is a member
+      const { data: allBandMemberships, error: allBandMembershipsError } = await supabase
+        .from('band_members')
+        .select('*')
+        .eq('member_id', profile.id)
+        .limit(5);
+      
+      if (allBandMembershipsError) {
+        console.error('Error fetching all band memberships:', allBandMembershipsError);
+      } else {
+        console.log('All band memberships for this band:', allBandMemberships);
+      }
+      
+      const { data: collaborations, error: collaborationsError } = await supabase
+        .from('band_members')
+        .select(`
           id,
-          display_name,
-          name,
-          avatar_url
-        )
-      `)
-      .eq('member_id', profile.id)
-      .eq('status', 'accepted');
-    
-    if (membershipsError) {
-      console.error('Error fetching band memberships:', membershipsError);
+          band:profiles!band_id(
+            id,
+            display_name,
+            name,
+            avatar_url
+          )
+        `)
+        .eq('member_id', profile.id)
+        .eq('status', 'accepted');
+      
+      if (collaborationsError) {
+        console.error('Error fetching band collaborations:', collaborationsError);
+      }
+      
+      console.log('Band collaborations fetched:', collaborations);
+      console.log('Band collaborations count:', collaborations?.length || 0);
+      bandMemberships = collaborations;
+    } else {
+      // For musicians/vocalists, show band memberships
+      console.log('Profile is a musician/vocalist, fetching band memberships...');
+      const { data: memberships, error: membershipsError } = await supabase
+        .from('band_members')
+        .select(`
+          id,
+          band:profiles!band_id(
+            id,
+            display_name,
+            name,
+            avatar_url
+          )
+        `)
+        .eq('member_id', profile.id)
+        .eq('status', 'accepted');
+      
+      if (membershipsError) {
+        console.error('Error fetching band memberships:', membershipsError);
+      }
+      
+      console.log('Band memberships fetched:', memberships);
+      console.log('Band memberships count:', memberships?.length || 0);
+      console.log('Band memberships data structure:', JSON.stringify(memberships, null, 2));
+      bandMemberships = memberships;
     }
-    
-    console.log('Band memberships fetched:', memberships);
-    console.log('Band memberships count:', memberships?.length || 0);
-    console.log('Band memberships data structure:', JSON.stringify(memberships, null, 2));
-    bandMemberships = memberships;
   }
 
   // Get school memberships if profile is a teacher
@@ -940,12 +1013,18 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
 
 
 
-            {/* Band Memberships Section - Show only for musicians/vocalists */}
-            {profile.roles?.some((role: string) => ['musician', 'vocalist'].includes(role)) && (
+            {/* Band Memberships Section - Show for musicians/vocalists OR bands */}
+            {(profile.roles?.some((role: string) => ['musician', 'vocalist'].includes(role)) || profile.category === 'band') && (
               <div className="bg-gray-800 rounded-lg shadow p-6">
-                <h2 className="text-lg font-bold mb-4 text-orange-500">عضویت در گروه‌ها</h2>
+                <h2 className="text-lg font-bold mb-4 text-orange-500">
+                  {profile.category === 'band' ? 'همکاری با گروه‌های دیگر' : 'عضویت در گروه‌ها'}
+                </h2>
                 {!bandMemberships && <p className="text-gray-400">در حال بارگذاری...</p>}
-                {bandMemberships && bandMemberships.length === 0 && <p className="text-gray-400">عضو هیچ گروهی نیست</p>}
+                {bandMemberships && bandMemberships.length === 0 && (
+                  <p className="text-gray-400">
+                    {profile.category === 'band' ? 'با هیچ گروه دیگری همکاری نمی‌کند' : 'عضو هیچ گروهی نیست'}
+                  </p>
+                )}
                 {bandMemberships && bandMemberships.length > 0 && (
                   <div className="space-y-4">
                     {bandMemberships.map((membership: any) => (
