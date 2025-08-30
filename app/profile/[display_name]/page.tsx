@@ -206,7 +206,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
         )
       `)
       .eq('band_id', profile.id)
-      .eq('status', 'accepted');
+      .eq('role', 'member');  // Use 'role' instead of 'status'
     
     if (membersError) {
       console.error('Error fetching band members:', membersError);
@@ -267,7 +267,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
           )
         `)
         .eq('member_id', profile.id)
-        .eq('status', 'accepted');
+        .eq('role', 'member');  // Use 'role' instead of 'status'
       
       if (collaborationsError) {
         console.error('Error fetching band collaborations:', collaborationsError);
@@ -321,7 +321,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
         )
       `)
       .eq('teacher_id', profile.id)
-      .eq('status', 'accepted');
+      .eq('role', 'teacher');  // Use 'role' instead of 'status'
     
     if (membershipsError) {
       console.error('Error fetching school memberships:', membershipsError);
@@ -351,7 +351,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
         )
       `)
       .eq('school_id', profile.id)
-      .eq('status', 'accepted');
+      .eq('role', 'teacher');  // Use 'role' instead of 'status'
     
     if (teachersError) {
       console.error('Error fetching school teachers:', teachersError);
@@ -423,7 +423,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
           band:profiles!band_id(*)
         `)
         .eq('member_id', userId)
-        .eq('status', 'pending');
+        .eq('role', 'pending');  // Use 'role' instead of 'status'
       
       if (bandInvitesError) {
         console.error('Error fetching band invites:', bandInvitesError);
@@ -444,7 +444,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
           member:profiles!member_id(id, name, display_name, avatar_url)
         `)
         .eq('band_id', profile.id)
-        .eq('status', 'requested');
+        .eq('role', 'requested');  // Use 'role' instead of 'status'
       
       if (bandRequestsError) {
         console.error('Error fetching band requests:', bandRequestsError);
