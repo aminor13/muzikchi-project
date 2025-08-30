@@ -14,6 +14,7 @@ import { redirect } from 'next/navigation'
 import TeachingRequestButton from '@/app/components/TeachingRequestButton'
 import ImageGalleryModal from '@/app/components/ImageGalleryModal'
 import GallerySection from '@/app/components/GallerySection'
+import ProfileDebugInfo from '@/app/components/ProfileDebugInfo'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,6 +61,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     roles: profile.roles,
     display_name: profile.display_name
   });
+  
+  console.log('User session data:', {
+    userId,
+    profileId,
+    isOwner,
+    userError: userError?.message,
+    sessionError: sessionError?.message
+  });
+  
+  console.log('Full profile object:', JSON.stringify(profile, null, 2));
 
   // Get upcoming events for this profile
   let upcomingEvents: any[] = [];
@@ -123,10 +134,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   }
 
   // همه رویدادها را بدون فیلتر بگیریم تا ببینیم created_by چه مقادیری دارد
-  const { data: allEvents } = await supabase
+  const { data: allEvents, error: allEventsError } = await supabase
     .from('events')
     .select('id, title, created_by')
     .limit(10);
+  
+  if (allEventsError) {
+    console.error('Error fetching all events:', allEventsError);
+  }
+  
+  console.log('All events sample:', allEvents);
+  console.log('Events created_by values:', allEvents?.map(e => e.created_by));
   
   
 
@@ -153,6 +171,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     }
     
     console.log('Band members fetched:', members);
+    console.log('Band members count:', members?.length || 0);
+    console.log('Band members data structure:', JSON.stringify(members, null, 2));
     bandMembers = members;
   }
 
@@ -160,6 +180,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   let bandMemberships = null;
   if (profile?.roles?.some((role: string) => ['musician', 'vocalist'].includes(role))) {
     console.log('Fetching band memberships for profile:', profile.id);
+    console.log('Profile roles:', profile.roles);
     const { data: memberships, error: membershipsError } = await supabase
       .from('band_members')
       .select(`
@@ -179,6 +200,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     }
     
     console.log('Band memberships fetched:', memberships);
+    console.log('Band memberships count:', memberships?.length || 0);
+    console.log('Band memberships data structure:', JSON.stringify(memberships, null, 2));
     bandMemberships = memberships;
   }
 
@@ -186,6 +209,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   let schoolMemberships = null;
   if (profile?.roles?.includes('teacher')) {
     console.log('Fetching school memberships for profile:', profile.id);
+    console.log('Profile roles:', profile.roles);
     const { data: memberships, error: membershipsError } = await supabase
       .from('school_teachers')
       .select(`
@@ -205,6 +229,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     }
     
     console.log('School memberships fetched:', memberships);
+    console.log('School memberships count:', memberships?.length || 0);
+    console.log('School memberships data structure:', JSON.stringify(memberships, null, 2));
     schoolMemberships = memberships;
   }
 
@@ -212,6 +238,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   let schoolTeachers = null;
   if (profile?.category === 'place' && profile?.roles?.includes('school')) {
     console.log('Fetching school teachers for profile:', profile.id);
+    console.log('Profile category:', profile.category);
+    console.log('Profile roles:', profile.roles);
     const { data: teachers, error: teachersError } = await supabase
       .from('school_teachers')
       .select(`
@@ -231,6 +259,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     }
     
     console.log('School teachers fetched:', teachers);
+    console.log('School teachers count:', teachers?.length || 0);
+    console.log('School teachers data structure:', JSON.stringify(teachers, null, 2));
     
     if (teachers && teachers.length > 0) {
       for (const t of teachers) {
@@ -280,9 +310,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   let pendingBandRequests = null;
   
   if (isOwner && userId) {
+    console.log('Checking pending invites for user:', userId);
+    console.log('Profile roles:', profile.roles);
+    console.log('Profile category:', profile.category);
+    
     // Check for band invites if user is a musician or vocalist
     if (profile.roles?.some((role: string) => ['musician', 'vocalist', 'singer'].includes(role))) {
-      const { data: bandInvites } = await supabase
+      console.log('User has musician/vocalist role, checking band invites...');
+      const { data: bandInvites, error: bandInvitesError } = await supabase
         .from('band_members')
         .select(`
           *,
@@ -291,12 +326,19 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
         .eq('member_id', userId)
         .eq('status', 'pending');
       
+      if (bandInvitesError) {
+        console.error('Error fetching band invites:', bandInvitesError);
+      }
+      
+      console.log('Band invites fetched:', bandInvites);
+      console.log('Band invites count:', bandInvites?.length || 0);
       pendingBandInvites = bandInvites;
     }
 
     // Check for band requests if user is a band
     if (profile.category === 'band') {
-      const { data: bandRequests } = await supabase
+      console.log('User is a band, checking band requests...');
+      const { data: bandRequests, error: bandRequestsError } = await supabase
         .from('band_members')
         .select(`
           *,
@@ -305,12 +347,19 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
         .eq('band_id', profile.id)
         .eq('status', 'requested');
       
+      if (bandRequestsError) {
+        console.error('Error fetching band requests:', bandRequestsError);
+      }
+      
+      console.log('Band requests fetched:', bandRequests);
+      console.log('Band requests count:', bandRequests?.length || 0);
       pendingBandRequests = bandRequests;
     }
 
     // Check for school invites if user is a teacher
     if (profile.roles?.includes('teacher')) {
-      const { data: schoolInvites } = await supabase
+      console.log('User is a teacher, checking school invites...');
+      const { data: schoolInvites, error: schoolInvitesError } = await supabase
         .from('school_teachers')
         .select(`
           *,
@@ -318,6 +367,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
         `)
         .eq('teacher_id', userId)
         .eq('status', 'pending');
+      
+      if (schoolInvitesError) {
+        console.error('Error fetching school invites:', schoolInvitesError);
+      }
+      
+      console.log('School invites fetched:', schoolInvites);
+      console.log('School invites count:', schoolInvites?.length || 0);
       pendingSchoolInvites = schoolInvites;
     }
   }
@@ -831,19 +887,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
             </div>
 
             {/* Debug Section - Show data for debugging */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="bg-gray-800 rounded-lg shadow p-6 border-l-4 border-yellow-500">
-                <h2 className="text-lg font-bold mb-4 text-yellow-500">Debug Info</h2>
-                <div className="space-y-2 text-sm text-gray-300">
-                  <div><span className="font-bold">Profile Category:</span> {profile.category}</div>
-                  <div><span className="font-bold">Profile Roles:</span> {profile.roles?.join(', ') || 'None'}</div>
-                  <div><span className="font-bold">Band Members:</span> {bandMembers ? `${bandMembers.length} members` : 'null'}</div>
-                  <div><span className="font-bold">Band Memberships:</span> {bandMemberships ? `${bandMemberships.length} memberships` : 'null'}</div>
-                  <div><span className="font-bold">School Memberships:</span> {schoolMemberships ? `${schoolMemberships.length} memberships` : 'null'}</div>
-                  <div><span className="font-bold">School Teachers:</span> {schoolTeachers ? `${schoolTeachers.length} teachers` : 'null'}</div>
-                </div>
-              </div>
-            )}
+            <ProfileDebugInfo
+              profile={profile}
+              bandMembers={bandMembers}
+              bandMemberships={bandMemberships}
+              schoolMemberships={schoolMemberships}
+              schoolTeachers={schoolTeachers}
+              pendingBandInvites={pendingBandInvites}
+              pendingSchoolInvites={pendingSchoolInvites}
+              pendingBandRequests={pendingBandRequests}
+            />
 
             {/* Band Members Section - Show only for bands */}
             {profile.category === 'band' && (
