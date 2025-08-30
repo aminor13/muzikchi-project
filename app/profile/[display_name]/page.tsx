@@ -41,6 +41,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   const userId = user?.id?.toString().trim();
   const profileId = profile?.id?.toString().trim();
   const isOwner = userId === profileId;
+  
+  // Debug profile data
+  if (profileError) {
+    console.error('Profile error:', profileError);
+  }
+  
+  // Debug: Check if profile exists and has required fields
+  if (!profile) {
+    console.error('Profile not found for display_name:', decodedDisplayName);
+    return <div>Profile not found</div>;
+  }
 
   // Get upcoming events for this profile
   let upcomingEvents: any[] = [];
@@ -114,7 +125,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   // Get band members if profile is a band
   let bandMembers = null;
   if (profile?.category === 'band') {
-    const { data: members } = await supabase
+    const { data: members, error: membersError } = await supabase
       .from('band_members')
       .select(`
         id,
@@ -128,13 +139,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
       .eq('band_id', profile.id)
       .eq('status', 'accepted');
     
+    if (membersError) {
+      console.error('Error fetching band members:', membersError);
+    }
+    
     bandMembers = members;
   }
 
   // Get band memberships if profile is a musician/vocalist
   let bandMemberships = null;
   if (profile?.roles?.some((role: string) => ['musician', 'vocalist'].includes(role))) {
-    const { data: memberships } = await supabase
+    const { data: memberships, error: membershipsError } = await supabase
       .from('band_members')
       .select(`
         id,
@@ -148,13 +163,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
       .eq('member_id', profile.id)
       .eq('status', 'accepted');
     
+    if (membershipsError) {
+      console.error('Error fetching band memberships:', membershipsError);
+    }
+    
     bandMemberships = memberships;
   }
 
   // Get school memberships if profile is a teacher
   let schoolMemberships = null;
   if (profile?.roles?.includes('teacher')) {
-    const { data: memberships } = await supabase
+    const { data: memberships, error: membershipsError } = await supabase
       .from('school_teachers')
       .select(`
         id,
@@ -168,13 +187,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
       .eq('teacher_id', profile.id)
       .eq('status', 'accepted');
     
+    if (membershipsError) {
+      console.error('Error fetching school memberships:', membershipsError);
+    }
+    
     schoolMemberships = memberships;
   }
 
   // Get teachers if profile is a school
   let schoolTeachers = null;
   if (profile?.category === 'place' && profile?.roles?.includes('school')) {
-    const { data: teachers } = await supabase
+    const { data: teachers, error: teachersError } = await supabase
       .from('school_teachers')
       .select(`
         id,
@@ -187,6 +210,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
       `)
       .eq('school_id', profile.id)
       .eq('status', 'accepted');
+    
+    if (teachersError) {
+      console.error('Error fetching school teachers:', teachersError);
+    }
+    
     if (teachers && teachers.length > 0) {
       for (const t of teachers) {
         const teacherObj = Array.isArray(t.teacher) ? t.teacher[0] : t.teacher;
@@ -786,114 +814,130 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
             </div>
 
             {/* Band Members Section - Show only for bands */}
-            {profile.category === 'band' && bandMembers && bandMembers.length > 0 && (
+            {profile.category === 'band' && (
               <div className="bg-gray-800 rounded-lg shadow p-6">
                 <h2 className="text-lg font-bold mb-4 text-orange-500">اعضای گروه</h2>
-                <div className="space-y-4">
-                  {bandMembers.map((membership: any) => (
-                    <Link 
-                      key={membership.id} 
-                      href={`/profile/${membership.member.display_name}`}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                      {membership.member.avatar_url ? (
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                          <Image
-                            src={membership.member.avatar_url}
-                            alt={membership.member.name}
-                            fill
-                            sizes="(max-width: 768px) 48px, 96px"
-                            className="object-cover"
-                          />
+                {!bandMembers && <p className="text-gray-400">در حال بارگذاری...</p>}
+                {bandMembers && bandMembers.length === 0 && <p className="text-gray-400">هیچ عضوی یافت نشد</p>}
+                {bandMembers && bandMembers.length > 0 && (
+                  <div className="space-y-4">
+                    {bandMembers.map((membership: any) => (
+                      <Link 
+                        key={membership.id} 
+                        href={`/profile/${membership.member.display_name}`}
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        {membership.member.avatar_url ? (
+                          <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                            <Image
+                              src={membership.member.avatar_url}
+                              alt={membership.member.name}
+                              fill
+                              sizes="(max-width: 768px) 48px, 96px"
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
+                            <span className="text-2xl">👤</span>
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-gray-100 font-medium">{membership.member.name}</div>
+                          <div className="text-gray-400 text-sm">@{membership.member.display_name}</div>
                         </div>
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
-                          <span className="text-2xl">👤</span>
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-gray-100 font-medium">{membership.member.name}</div>
-                        <div className="text-gray-400 text-sm">@{membership.member.display_name}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
+
+
 
             {/* Band Memberships Section - Show only for musicians/vocalists */}
-            {profile.roles?.some((role: string) => ['musician', 'vocalist'].includes(role)) && 
-             bandMemberships && bandMemberships.length > 0 && (
+            {profile.roles?.some((role: string) => ['musician', 'vocalist'].includes(role)) && (
               <div className="bg-gray-800 rounded-lg shadow p-6">
                 <h2 className="text-lg font-bold mb-4 text-orange-500">عضویت در گروه‌ها</h2>
-                <div className="space-y-4">
-                  {bandMemberships.map((membership: any) => (
-                    <Link 
-                      key={membership.id} 
-                      href={`/profile/${membership.band.display_name}`}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                      {membership.band.avatar_url ? (
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                          <Image
-                            src={membership.band.avatar_url}
-                            alt={membership.band.name}
-                            fill
-                            sizes="(max-width: 768px) 48px, 96px"
-                            className="object-cover"
-                          />
+                {!bandMemberships && <p className="text-gray-400">در حال بارگذاری...</p>}
+                {bandMemberships && bandMemberships.length === 0 && <p className="text-gray-400">عضو هیچ گروهی نیست</p>}
+                {bandMemberships && bandMemberships.length > 0 && (
+                  <div className="space-y-4">
+                    {bandMemberships.map((membership: any) => (
+                      <Link 
+                        key={membership.id} 
+                        href={`/profile/${membership.band.display_name}`}
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        {membership.band.avatar_url ? (
+                          <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                            <Image
+                              src={membership.band.avatar_url}
+                              alt={membership.band.name}
+                              fill
+                              sizes="(max-width: 768px) 48px, 96px"
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
+                            <span className="text-2xl">🎵</span>
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-gray-100 font-medium">{membership.band.name}</div>
+                          <div className="text-gray-400 text-sm">@{membership.band.display_name}</div>
                         </div>
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
-                          <span className="text-2xl">🎵</span>
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-gray-100 font-medium">{membership.band.name}</div>
-                        <div className="text-gray-400 text-sm">@{membership.band.display_name}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
+
+
             {/* School Memberships Section - Show only for teachers */}
-            {profile.roles?.includes('teacher') && 
-             schoolMemberships && schoolMemberships.length > 0 && (
+            {profile.roles?.includes('teacher') && (
               <div className="bg-gray-800 rounded-lg shadow p-6">
                 <h2 className="text-lg font-bold mb-4 text-orange-500">تدریس در آموزشگاه‌ها</h2>
-                <div className="space-y-4">
-                  {schoolMemberships.map((membership: any) => (
-                    <Link 
-                      key={membership.id} 
-                      href={`/profile/${membership.school.display_name}`}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                      {membership.school.avatar_url ? (
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                          <Image
-                            src={membership.school.avatar_url}
-                            alt={membership.school.name}
-                            fill
-                            sizes="(max-width: 768px) 48px, 96px"
-                            className="object-cover"
-                          />
+                {!schoolMemberships && <p className="text-gray-400">در حال بارگذاری...</p>}
+                {schoolMemberships && schoolMemberships.length === 0 && <p className="text-gray-400">در هیچ آموزشگاهی تدریس نمی‌کند</p>}
+                {schoolMemberships && schoolMemberships.length > 0 && (
+                  <div className="space-y-4">
+                    {schoolMemberships.map((membership: any) => (
+                      <Link 
+                        key={membership.id} 
+                        href={`/profile/${membership.school.display_name}`}
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        {membership.school.avatar_url ? (
+                          <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                            <Image
+                              src={membership.school.avatar_url}
+                              alt={membership.school.name}
+                              fill
+                              sizes="(max-width: 768px) 48px, 96px"
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
+                            <span className="text-2xl">🏫</span>
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-gray-100 font-medium">{membership.school.name}</div>
+                          <div className="text-gray-400 text-sm">@{membership.school.display_name}</div>
                         </div>
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
-                          <span className="text-2xl">🏫</span>
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-gray-100 font-medium">{membership.school.name}</div>
-                        <div className="text-gray-400 text-sm">@{membership.school.display_name}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
+
+
 
             {/* Pending School Invites Section - Show only for teachers */}
             {isOwner && profile.roles?.includes('teacher') && 
@@ -946,52 +990,58 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
             )}
 
             {/* School Teachers Section - Show only for schools */}
-            {profile.category === 'place' && profile.roles?.includes('school') && schoolTeachers && schoolTeachers.length > 0 && (
+            {profile.category === 'place' && profile.roles?.includes('school') && (
               <div className="bg-gray-800 rounded-lg shadow p-6">
                 <h2 className="text-lg font-bold mb-4 text-orange-500">اساتید آموزشگاه</h2>
-                <div className="space-y-4">
-                  {schoolTeachers.map((membership: any) => (
-                    <Link 
-                      key={membership.id} 
-                      href={`/profile/${membership.teacher.display_name}`}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                      {membership.teacher.avatar_url ? (
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                          <Image
-                            src={membership.teacher.avatar_url}
-                            alt={membership.teacher.name}
-                            fill
-                            sizes="(max-width: 768px) 48px, 96px"
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
-                          <span className="text-2xl">👤</span>
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-gray-100 font-medium">{membership.teacher.name}</div>
-                        <div className="text-gray-400 text-sm">@{membership.teacher.display_name}</div>
-                        {membership.teacher.instruments && membership.teacher.instruments.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {membership.teacher.instruments.map((inst: any, idx: number) => (
-                              <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full border border-green-500 text-xs font-medium bg-gray-800 text-gray-100">
-                                {getInstrumentName(inst.instrument_id)}
-                                {inst.skill && (
-                                  <span className="ml-1 text-gray-400">({skillLabels[inst.skill] || inst.skill})</span>
-                                )}
-                              </span>
-                            ))}
+                {!schoolTeachers && <p className="text-gray-400">در حال بارگذاری...</p>}
+                {schoolTeachers && schoolTeachers.length === 0 && <p className="text-gray-400">هیچ استادی یافت نشد</p>}
+                {schoolTeachers && schoolTeachers.length > 0 && (
+                  <div className="space-y-4">
+                    {schoolTeachers.map((membership: any) => (
+                      <Link 
+                        key={membership.id} 
+                        href={`/profile/${membership.teacher.display_name}`}
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        {membership.teacher.avatar_url ? (
+                          <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                            <Image
+                              src={membership.teacher.avatar_url}
+                              alt={membership.teacher.name}
+                              fill
+                              sizes="(max-width: 768px) 48px, 96px"
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
+                            <span className="text-2xl">👤</span>
                           </div>
                         )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                        <div>
+                          <div className="text-gray-100 font-medium">{membership.teacher.name}</div>
+                          <div className="text-gray-400 text-sm">@{membership.teacher.display_name}</div>
+                          {membership.teacher.instruments && membership.teacher.instruments.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {membership.teacher.instruments.map((inst: any, idx: number) => (
+                                <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full border border-green-500 text-xs font-medium bg-gray-800 text-gray-100">
+                                  {getInstrumentName(inst.instrument_id)}
+                                  {inst.skill && (
+                                    <span className="ml-1 text-gray-400">({skillLabels[inst.skill] || inst.skill})</span>
+                                  )}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
+
+
           </div>
 
           {/* Middle: About & Instruments */}
