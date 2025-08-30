@@ -169,19 +169,20 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   if (profile?.category === 'band') {
     console.log('Fetching band members for profile:', profile.id);
     
-    // First, let's check if there are any band_members records at all
+        // First, let's check if there are any band_members records at all
     const { data: allBandMembers, error: allBandMembersError } = await supabase
       .from('band_members')
       .select('*')
       .limit(10);
     
     if (allBandMembersError) {
-      console.error('Error fetching all band members:', allBandMembersError);
+      console.error('Error fetching all band_members:', allBandMembersError);
     } else {
       console.log('Sample of all band_members records:', allBandMembers);
     }
     
-        // Also check specifically for this band
+    // Check specifically for this band with simple query first
+    console.log('Looking for band_id:', profile.id);
     const { data: thisBandMembers, error: thisBandMembersError } = await supabase
       .from('band_members')
       .select('*')
@@ -192,6 +193,32 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     } else {
       console.log('All band_members for this specific band:', thisBandMembers);
       console.log('Count for this band:', thisBandMembers?.length || 0);
+      
+      // If we found records, let's see their details
+      if (thisBandMembers && thisBandMembers.length > 0) {
+        console.log('Found members! Details:');
+        thisBandMembers.forEach((member, index) => {
+          console.log(`Member ${index + 1}:`, {
+            id: member.id,
+            band_id: member.band_id,
+            member_id: member.member_id,
+            status: member.status,
+            role: member.role
+          });
+        });
+      }
+    }
+    
+    // Also try a raw query without joins to see if the issue is with foreign keys
+    const { data: rawBandMembers, error: rawError } = await supabase
+      .from('band_members')
+      .select('band_id, member_id, status, role')
+      .eq('band_id', profile.id);
+    
+    if (rawError) {
+      console.error('Error with raw query:', rawError);
+    } else {
+      console.log('Raw query result:', rawBandMembers);
     }
     
     const { data: members, error: membersError } = await supabase
