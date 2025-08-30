@@ -53,6 +53,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     return <div>Profile not found</div>;
   }
 
+  // Debug: Log profile data for troubleshooting
+  console.log('Profile data:', {
+    id: profile.id,
+    category: profile.category,
+    roles: profile.roles,
+    display_name: profile.display_name
+  });
+
   // Get upcoming events for this profile
   let upcomingEvents: any[] = [];
   let pastEvents: any[] = [];
@@ -125,6 +133,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   // Get band members if profile is a band
   let bandMembers = null;
   if (profile?.category === 'band') {
+    console.log('Fetching band members for profile:', profile.id);
     const { data: members, error: membersError } = await supabase
       .from('band_members')
       .select(`
@@ -143,12 +152,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
       console.error('Error fetching band members:', membersError);
     }
     
+    console.log('Band members fetched:', members);
     bandMembers = members;
   }
 
   // Get band memberships if profile is a musician/vocalist
   let bandMemberships = null;
   if (profile?.roles?.some((role: string) => ['musician', 'vocalist'].includes(role))) {
+    console.log('Fetching band memberships for profile:', profile.id);
     const { data: memberships, error: membershipsError } = await supabase
       .from('band_members')
       .select(`
@@ -167,12 +178,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
       console.error('Error fetching band memberships:', membershipsError);
     }
     
+    console.log('Band memberships fetched:', memberships);
     bandMemberships = memberships;
   }
 
   // Get school memberships if profile is a teacher
   let schoolMemberships = null;
   if (profile?.roles?.includes('teacher')) {
+    console.log('Fetching school memberships for profile:', profile.id);
     const { data: memberships, error: membershipsError } = await supabase
       .from('school_teachers')
       .select(`
@@ -191,12 +204,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
       console.error('Error fetching school memberships:', membershipsError);
     }
     
+    console.log('School memberships fetched:', memberships);
     schoolMemberships = memberships;
   }
 
   // Get teachers if profile is a school
   let schoolTeachers = null;
   if (profile?.category === 'place' && profile?.roles?.includes('school')) {
+    console.log('Fetching school teachers for profile:', profile.id);
     const { data: teachers, error: teachersError } = await supabase
       .from('school_teachers')
       .select(`
@@ -214,6 +229,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     if (teachersError) {
       console.error('Error fetching school teachers:', teachersError);
     }
+    
+    console.log('School teachers fetched:', teachers);
     
     if (teachers && teachers.length > 0) {
       for (const t of teachers) {
@@ -812,6 +829,21 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
                 )}
               </div>
             </div>
+
+            {/* Debug Section - Show data for debugging */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="bg-gray-800 rounded-lg shadow p-6 border-l-4 border-yellow-500">
+                <h2 className="text-lg font-bold mb-4 text-yellow-500">Debug Info</h2>
+                <div className="space-y-2 text-sm text-gray-300">
+                  <div><span className="font-bold">Profile Category:</span> {profile.category}</div>
+                  <div><span className="font-bold">Profile Roles:</span> {profile.roles?.join(', ') || 'None'}</div>
+                  <div><span className="font-bold">Band Members:</span> {bandMembers ? `${bandMembers.length} members` : 'null'}</div>
+                  <div><span className="font-bold">Band Memberships:</span> {bandMemberships ? `${bandMemberships.length} memberships` : 'null'}</div>
+                  <div><span className="font-bold">School Memberships:</span> {schoolMemberships ? `${schoolMemberships.length} memberships` : 'null'}</div>
+                  <div><span className="font-bold">School Teachers:</span> {schoolTeachers ? `${schoolTeachers.length} teachers` : 'null'}</div>
+                </div>
+              </div>
+            )}
 
             {/* Band Members Section - Show only for bands */}
             {profile.category === 'band' && (
