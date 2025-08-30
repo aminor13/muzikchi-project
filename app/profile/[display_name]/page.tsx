@@ -173,12 +173,25 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     const { data: allBandMembers, error: allBandMembersError } = await supabase
       .from('band_members')
       .select('*')
-      .limit(5);
+      .limit(10);
     
     if (allBandMembersError) {
       console.error('Error fetching all band members:', allBandMembersError);
     } else {
       console.log('Sample of all band_members records:', allBandMembers);
+    }
+    
+    // Also check specifically for this band
+    const { data: thisBandMembers, error: thisBandMembersError } = await supabase
+      .from('band_members')
+      .select('*')
+      .eq('band_id', profile.id);
+    
+    if (thisBandMembersError) {
+      console.error('Error fetching this band members:', thisBandMembersError);
+    } else {
+      console.log('All band_members for this specific band:', thisBandMembers);
+      console.log('Count for this band:', thisBandMembers?.length || 0);
     }
     
     const { data: members, error: membersError } = await supabase
@@ -221,12 +234,25 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
         .from('band_members')
         .select('*')
         .eq('member_id', profile.id)
-        .limit(5);
+        .limit(10);
       
       if (allBandMembershipsError) {
         console.error('Error fetching all band memberships:', allBandMembershipsError);
       } else {
         console.log('All band memberships for this band:', allBandMemberships);
+        console.log('Count of memberships:', allBandMemberships?.length || 0);
+      }
+      
+      // Check all band_members records to see the structure
+      const { data: allBandMembersStructure, error: allBandMembersStructureError } = await supabase
+        .from('band_members')
+        .select('*')
+        .limit(5);
+      
+      if (allBandMembersStructureError) {
+        console.error('Error fetching band_members structure:', allBandMembersStructureError);
+      } else {
+        console.log('Sample band_members structure:', allBandMembersStructure);
       }
       
       const { data: collaborations, error: collaborationsError } = await supabase
