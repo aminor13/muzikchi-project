@@ -192,6 +192,23 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     } else {
       console.log('All band_members for this specific band:', thisBandMembers);
       console.log('Count for this band:', thisBandMembers?.length || 0);
+      
+              // Check what status values exist
+        if (thisBandMembers && thisBandMembers.length > 0) {
+          const statusValues = Array.from(new Set(thisBandMembers.map(m => m.status)));
+          console.log('Status values found:', statusValues);
+          
+          // Check each record
+          thisBandMembers.forEach((member, index) => {
+            console.log(`Member ${index + 1}:`, {
+              id: member.id,
+              band_id: member.band_id,
+              member_id: member.member_id,
+              status: member.status,
+              role: member.role
+            });
+          });
+        }
     }
     
     const { data: members, error: membersError } = await supabase
@@ -241,6 +258,23 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
       } else {
         console.log('All band memberships for this band:', allBandMemberships);
         console.log('Count of memberships:', allBandMemberships?.length || 0);
+        
+        // Check what status values exist
+        if (allBandMemberships && allBandMemberships.length > 0) {
+          const statusValues = Array.from(new Set(allBandMemberships.map(m => m.status)));
+          console.log('Status values found in memberships:', statusValues);
+          
+          // Check each record
+          allBandMemberships.forEach((membership, index) => {
+            console.log(`Membership ${index + 1}:`, {
+              id: membership.id,
+              band_id: membership.band_id,
+              member_id: membership.member_id,
+              status: membership.status,
+              role: membership.role
+            });
+          });
+        }
       }
       
       // Check all band_members records to see the structure
