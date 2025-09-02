@@ -615,7 +615,7 @@ export default function AdvancedSearch() {
                 </div>
 
                 {/* Search Button */}
-                <div className="pt-4">
+                {/* <div className="pt-4">
                   <button
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors"
                     type="button"
@@ -623,7 +623,7 @@ export default function AdvancedSearch() {
                   >
                   جستجو
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
 
