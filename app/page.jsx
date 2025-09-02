@@ -4,9 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import AvatarMosaic from '@/components/AvatarMosaic'
 import QuickSearch from '@/components/QuickSearch'
-import FeaturedProfiles from '@/components/FeaturedProfiles'
 import UpcomingEvents from '@/components/UpcomingEvents'
-import FeaturedProfilesSlider from '@/components/FeaturedProfiles'
 import MusicianIcon from '@/components/icons/MusicianIcon'
 import BandIcon from '@/components/icons/BandIcon'
 import TeacherIcon from '@/components/icons/TeacherIcon'
@@ -19,7 +17,6 @@ import { createClient } from '@/utils/supabase/client'
 export default function Home() {
   const router = useRouter()
   useEffect(() => {
-    // اگر لینک ایمیل کاربر را به ریشه سایت با ?code=... آورد، اینجا هندل کنیم
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
     if (code) {
@@ -38,13 +35,11 @@ export default function Home() {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
-        // Check if email is confirmed first
         if (!session.user.email_confirmed_at) {
           router.replace('/verify-email')
           return
         }
-        
-        const { data: profile, error } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('is_complete')
           .eq('id', session.user.id)
@@ -65,33 +60,34 @@ export default function Home() {
         <AvatarMosaic />
         
         {/* Content */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-          <div className="text-center">
-            <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
-              <Image
-                src="/first_logo.png"
-                alt="موزیکچی"
-                width={400}
-                height={130}
-                className="mx-auto"
-              />
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
-              شبکه اجتماعی اهالی <span className="text-orange-500">موسیقی</span> در ایران
-            </h1>
-            <p className="text-xl text-gray-300 mb-12 opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards]">
-              نوازنده، خواننده، گروه موسیقی یا آموزشگاه؟
-              <br />
-              اگر به هر نوعی به موسیقی مرتبط هستید، اینجا جای شماست
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center">
+          <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
+            <Image
+              src="/first_logo.png"
+              alt="موزیکچی"
+              width={400}
+              height={130}
+              className="mx-auto"
+            />
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
+            🎵 موزیکچی؛ جایی که صداها همدیگه رو پیدا می‌کنن
+          </h1>
+
+          <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards]">
+            <p>
+              اگه دنبال یه موزیسین واسه همکاری می‌گردی، درست اومدی 🎸<br/>
+              اگه یه بیزینس موسیقی داری و می‌خوای به موزیسین‌ها وصل بشی، باز هم اینجا جات درسته 🎤<br/>
+              و اگه فقط دنبال اینی که ببینی کی و کجا اجرا داره، می‌تونی تو قسمت رویدادها سر بزنی 🎶
             </p>
-            {/* <div className="max-w-2xl mx-auto">
-              <QuickSearch />
-            </div> */}
+
+            <p>
+              من خودم یه زمانی تو یه بند بودم. هر بار که می‌خواستیم یه نوازنده جدید پیدا کنیم کلی سختی داشت. یه روز به سرم زد: چرا یه جایی نباشه که موزیسین‌ها راحت همدیگه رو پیدا کنن؟ همین شد که <span className="text-orange-400 font-bold">muzikchi.ir</span> به دنیا اومد.
+            </p>
           </div>
         </div>
       </section>
-
-      
 
       {/* How it Works */}
       <section className="py-16 bg-gray-800">
@@ -134,7 +130,6 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white text-center mb-12">چه کسانی می‌توانند عضو شوند؟</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
-            {/* Musicians */}
             <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <MusicianIcon />
@@ -148,7 +143,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Bands */}
             <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <BandIcon />
@@ -162,7 +156,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Teachers */}
             <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <TeacherIcon />
@@ -176,7 +169,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Music Schools */}
             <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <SchoolIcon />
@@ -190,7 +182,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Music Venues */}
             <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <PlaceIcon />
@@ -206,13 +197,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* Featured Profiles */}
-      <section className="py-16 bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">پربازدیدها</h2>
-          <FeaturedProfiles />
-        </div>
-      </section>
+
       {/* Upcoming Events */}
       <section className="py-16 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -221,7 +206,6 @@ export default function Home() {
         </div>
       </section>
 
-     
       {/* Call to Action */}
       <section className="py-16 bg-gradient-to-r from-orange-600 to-orange-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -236,4 +220,4 @@ export default function Home() {
       </section>
     </main>
   )
-} 
+}
