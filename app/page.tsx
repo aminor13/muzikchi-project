@@ -72,18 +72,18 @@ export default function Home() {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
-            🎵 موزیکچی؛ جایی که صداها همدیگه رو پیدا می‌کنن
+             جایی که صداها همدیگه رو پیدا می‌کنن
           </h1>
 
           <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards]">
             <p>
               اگه دنبال یه موزیسین واسه همکاری می‌گردی، درست اومدی 🎸<br/>
               اگه یه بیزینس موسیقی داری و می‌خوای به موزیسین‌ها وصل بشی، باز هم اینجا جات درسته 🎤<br/>
-              و اگه فقط دنبال اینی که ببینی کی و کجا اجرا داره، می‌تونی تو قسمت رویدادها سر بزنی 🎶
+              و اگه فقط دنبال اینی که ببینی کی و کجا اجرا داره، می‌تونی به قسمت رویدادها سر بزنی 🎶
             </p>
 
             <p>
-              من خودم یه زمانی تو یه بند بودم. هر بار که می‌خواستیم یه نوازنده جدید پیدا کنیم کلی سختی داشت. یه روز به سرم زد: چرا یه جایی نباشه که موزیسین‌ها راحت همدیگه رو پیدا کنن؟ همین شد که <span className="text-orange-400 font-bold">muzikchi.ir</span> به دنیا اومد.
+              من  یه زمانی تو یه بند بودم. هر بار که می‌خواستیم یه نوازنده جدید پیدا کنیم کلی سختی داشت. یه روز به سرم زد: چرا یه جایی نباشه که موزیسین‌ها راحت همدیگه رو پیدا کنن؟ همین شد که به فکر ساختن <span className="text-orange-400 font-bold">muzikchi</span> افتادم.
             </p>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function Home() {
       {/* How it Works */}
       <section className="py-16 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">چطور کار می‌کند؟</h2>
+          <h2 className="text-3xl font-bold text-white text-center mb-12">چطوری کار می‌کنه؟</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -100,8 +100,8 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">پروفایل بسازید</h3>
-              <p className="text-gray-300">مهارت‌ها و تجربیات خود را به اشتراک بگذارید</p>
+              <h3 className="text-xl font-bold text-white mb-2">پروفایل بساز</h3>
+              <p className="text-gray-300">مهارت‌ها و تجربیات خودت رو به اشتراک بگذار</p>
             </div>
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -109,8 +109,8 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">جستجو کنید</h3>
-              <p className="text-gray-300">همکاران مناسب خود را در شهر خود پیدا کنید</p>
+              <h3 className="text-xl font-bold text-white mb-2">جستجو کن</h3>
+              <p className="text-gray-300">همکارای مناسب خودت رو در شهر خودت پیدا کن</p>
             </div>
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -118,8 +118,8 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">ارتباط برقرار کنید</h3>
-              <p className="text-gray-300">با دیگر هنرمندان همکاری کنید</p>
+              <h3 className="text-xl font-bold text-white mb-2">ارتباط برقرار کن</h3>
+              <p className="text-gray-300">با موزیسینای دیگه همکاری کن</p>
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function Home() {
       {/* User Categories */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">چه کسانی می‌توانند عضو شوند؟</h2>
+          <h2 className="text-3xl font-bold text-white text-center mb-12">چه کسایی می‌تونن عضو بشن؟</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
             <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
@@ -139,7 +139,7 @@ export default function Home() {
                 <li>ایجاد پروفایل حرفه‌ای</li>
                 <li>نمایش سابقه و تجربیات</li>
                 <li>معرفی به گروه‌های موسیقی</li>
-                <li>یافتن فرصت‌های همکاری</li>
+                <li>پیدا کردن فرصت‌های همکاری</li>
               </ul>
             </div>
 
@@ -209,7 +209,7 @@ export default function Home() {
       {/* Call to Action */}
       <section className="py-16 bg-gradient-to-r from-orange-600 to-orange-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-8">همین حالا به موزیکچی بپیوندید</h2>
+          <h2 className="text-3xl font-bold text-white mb-8">همین حالا به موزیکچی ملحق شو</h2>
           <Link 
             href="/login" 
             className="inline-block bg-white text-orange-600 px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition"
