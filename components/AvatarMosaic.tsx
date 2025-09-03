@@ -111,7 +111,7 @@ export default function AvatarMosaic() {
               fill
               sizes="(max-width: 640px) 30vw, (max-width: 1024px) 22vw, 18vw"
               quality={60}
-              className="object-cover object-[center_top] filter grayscale"
+              className="object-cover object-[center_top] " //filter grayscale"
               priority
             />
           </div>
