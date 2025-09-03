@@ -193,16 +193,6 @@ export default function AdvancedSearch() {
     }
   };
 
-  // Retry function
-  const retryFetch = () => {
-    if (retryCount >= 3) {
-      setError("تعداد تلاش‌های مجدد به حداکثر رسیده. لطفاً صفحه را رفرش کنید.");
-      return;
-    }
-    setRetryCount(prev => prev + 1);
-    setPage(1);
-    fetchProfiles(1, false);
-  };
 
   // Clear cache and reset function
   const clearCacheAndReset = () => {
@@ -282,8 +272,10 @@ export default function AdvancedSearch() {
 
         setIsInitialized(true);
         fetchProfiles(1, false, filters);
-        
-    
+    } catch (e) {
+      console.error('Initialization failed:', e);
+    }
+  };
 
     initializeAndFetch();
 
