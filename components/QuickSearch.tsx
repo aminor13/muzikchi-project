@@ -16,7 +16,7 @@ export default function QuickSearch() {
   const handleSearch = () => {
   const params = new URLSearchParams();
     if (selectedRole) {
-    params.append('roles', selectedRole);
+    params.append('role', selectedRole);
     }
     if (selectedProvince) {
     params.append('province', selectedProvince);
