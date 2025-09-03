@@ -16,6 +16,7 @@ export default function Header() {
   // Check if user is admin
   const [isAdmin, setIsAdmin] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
 
   // Pending counts for header badges
   const [pendingBandRequestsCount, setPendingBandRequestsCount] = useState<number>(0) // requests to a band owned by user
