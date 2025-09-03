@@ -319,7 +319,7 @@ export default function AdvancedSearch() {
         setShowSearchForm(showSearchFormParam === '1');
 
         // Initial fetch
-        await fetchProfiles(1, false);
+        //await fetchProfiles(1, false);
         setIsInitialized(true);
       } catch (e) {
         console.error('Initialization failed:', e);
