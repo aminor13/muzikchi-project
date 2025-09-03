@@ -1,7 +1,7 @@
 'use client'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+//import Image from 'next/image'
 import AvatarMosaic from '@/components/AvatarMosaic'
 import QuickSearch from '@/components/QuickSearch'
 import UpcomingEvents from '@/components/UpcomingEvents'
@@ -76,28 +76,24 @@ export default function Home() {
           {/* New section for the feature boxes */}
             <div className="absolute bottom-0 w-full px-4 sm:px-6 lg:px-8 translate-y-1/2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
-                {/* Box 1 */}
+                Box 1
                   <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center bg-opacity-50">
-                   <h3 className="text-white font-bold mb-2">ابنجا میتونی به گروه های موسیقی اضافه بشی</h3>
-                   <p className="text-gray-400 text-sm">یا برای گروهت نوازنده یا خواننده پیدا کنی</p>
+                   <h3 className="text-white font-bold mb-2">ابنجا میتونی به گروه های موسیقی اضافه بشی یا برای گروهت نوازنده پیدا کنی</h3>
                   </div>
                {/* Box 2 */}
                  <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center bg-opacity-50">
-                    <h3 className="text-white font-bold mb-2">میتونی مدرس یا آموزشگاه موسیقی پیدا کنی</h3>
-                   <p className="text-gray-400 text-sm">یا خودت مدرس باشی</p>
+                    <h3 className="text-white font-bold mb-2">میتونی مدرس یا آموزشگاه موسیقی پیدا کنی یا خودت مدرس باشی</h3>
                  </div>
                {/* Box 3 */}
                   <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center bg-opacity-50">
-                   <h3 className="text-white font-bold mb-2">میتونی سالن اجرا یا استودیو ضبط پیدا کنی</h3>
-                   <p className="text-gray-400 text-sm">یا خودت معرفی کنی</p>
+                   <h3 className="text-white font-bold mb-2">میتونی سالن اجرا یا استودیو ضبط پیدا کنی یا سالن خودت رو معرفی کنی</h3>
                  </div>
                {/* Box 4 */}
                   <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center bg-opacity-50">
-                   <h3 className="text-white font-bold mb-2">اگه فقط دنبال اینی که ببینی کی و کجا اجرا داره،</h3>
-                   <p className="text-gray-400 text-sm"> می‌تونی به قسمت رویدادها سر بزنی</p>
+                   <h3 className="text-white font-bold mb-2">اگه فقط دنبال اینی که ببینی کی و کجا اجرا داره، می‌تونی به قسمت رویدادها سر بزنی</h3>
                   </div>
               </div>
-           </div>
+            </div>
         </div>
       </section>
 
