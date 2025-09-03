@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import provinceCityData from '@/data/province_city.json';
 import roleData from '@/data/category_role.json';
 
+// Flatten the role data to get a simple array of all roles
+const allRoles = roleData.flatMap(category => category.roles);
+
 export default function QuickSearch() {
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState('');
