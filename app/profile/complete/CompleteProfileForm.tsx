@@ -37,7 +37,6 @@ interface FormData {
 const CATEGORY_OPTIONS = categoryRoles.map(item => ({
   value: item.key,
   label: item.label,
-  description: item.description,
   roles: item.roles.map(r => r.value),
   icon: item.key === 'person' ? UserIcon : item.key === 'band' ? Music2 : Wrench,
 }))
