@@ -18,7 +18,7 @@ export default function QuickSearch() {
     if (selectedProvince) {
     params.append('province', selectedProvince);
     }
-  router.push(/explore?${params.toString()});
+  router.push(`/explore?${params.toString()}`);
   };
 
   return (
