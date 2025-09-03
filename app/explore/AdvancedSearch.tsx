@@ -52,7 +52,6 @@ setProvince(urlProvince);
 if (urlRole) {
 setRole(urlRole);
 }
-
 }, [searchParams]);
 
 useEffect(() => {
@@ -353,5 +352,5 @@ clipRule="evenodd"
 
 </div>
 </div>
-
 );
+}
