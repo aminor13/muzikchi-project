@@ -61,7 +61,7 @@ export default function Home() {
         
         {/* Content */}
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center">
-          <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
+          {/* <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
             <Image
               src="/first_logo.png"
               alt="موزیکچی"
@@ -69,7 +69,7 @@ export default function Home() {
               height={130}
               className="mx-auto"
             />
-          </div>
+          </div> */}
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
             دنبال موزیسین می‌گردی؟
           </h1>
@@ -77,22 +77,22 @@ export default function Home() {
             <div className="absolute bottom-0 w-full px-4 sm:px-6 lg:px-8 translate-y-1/2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
                 {/* Box 1 */}
-                  <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
+                  <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center bg-opacity-50">
                    <h3 className="text-white font-bold mb-2">ابنجا میتونی به گروه های موسیقی اضافه بشی</h3>
                    <p className="text-gray-400 text-sm">یا برای گروهت نوازنده یا خواننده پیدا کنی</p>
                   </div>
                {/* Box 2 */}
-                 <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
+                 <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center bg-opacity-50">
                     <h3 className="text-white font-bold mb-2">میتونی مدرس یا آموزشگاه موسیقی پیدا کنی</h3>
                    <p className="text-gray-400 text-sm">یا خودت مدرس باشی</p>
                  </div>
                {/* Box 3 */}
-                  <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
+                  <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center bg-opacity-50">
                    <h3 className="text-white font-bold mb-2">میتونی سالن اجرا یا استودیو ضبط پیدا کنی</h3>
                    <p className="text-gray-400 text-sm">یا خودت معرفی کنی</p>
                  </div>
                {/* Box 4 */}
-                  <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
+                  <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center bg-opacity-50">
                    <h3 className="text-white font-bold mb-2">اگه فقط دنبال اینی که ببینی کی و کجا اجرا داره،</h3>
                    <p className="text-gray-400 text-sm"> می‌تونی به قسمت رویدادها سر بزنی</p>
                   </div>
