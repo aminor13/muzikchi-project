@@ -71,21 +71,31 @@ export default function Home() {
             />
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
-             جایی که صداها همدیگه رو پیدا می‌کنن
-          </h1>
-
-          <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards]">
-            <p>
-              اگه دنبال یه موزیسین واسه همکاری می‌گردی، درست اومدی 🎸<br/>
-              اگه یه بیزینس موسیقی داری و می‌خوای به موزیسین‌ها وصل بشی، باز هم اینجا جات درسته 🎤<br/>
-              و اگه فقط دنبال اینی که ببینی کی و کجا اجرا داره، می‌تونی به قسمت رویدادها سر بزنی 🎶
-            </p>
-
-            <p>
-              من  یه زمانی تو یه بند بودم. هر بار که می‌خواستیم یه نوازنده جدید پیدا کنیم کلی سختی داشت. یه روز به سرم زد: چرا یه جایی نباشه که موزیسین‌ها راحت همدیگه رو پیدا کنن؟ همین شد که به فکر ساختن <span className="text-orange-400 font-bold">muzikchi</span> افتادم.
-            </p>
-          </div>
+          {/* New section for the feature boxes */}
+  <div className="absolute bottom-0 w-full px-4 sm:px-6 lg:px-8 translate-y-1/2">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
+      {/* Box 1 */}
+      <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
+        <h3 className="text-white font-bold mb-2">ابنجا میتونی به گروه های موسیقی اضافه بشی</h3>
+        <p className="text-gray-400 text-sm">یا برای گروهت نوازنده یا خواننده پیدا کنی</p>
+      </div>
+      {/* Box 2 */}
+      <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
+        <h3 className="text-white font-bold mb-2">میتونی مدرس یا آموزشگاه موسیقی پیدا کنی</h3>
+        <p className="text-gray-400 text-sm">یا خودت مدرس باشی</p>
+      </div>
+      {/* Box 3 */}
+      <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
+        <h3 className="text-white font-bold mb-2">میتونی سالن اجرا یا استودیو ضبط پیدا کنی</h3>
+        <p className="text-gray-400 text-sm">یا خودت معرفی کنی</p>
+      </div>
+      {/* Box 4 */}
+      <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-center">
+        <h3 className="text-white font-bold mb-2">اگه فقط دنبال اینی که ببینی کی و کجا اجرا داره،</h3>
+        <p className="text-gray-400 text-sm"> می‌تونی به قسمت رویدادها سر بزنی</p>
+      </div>
+    </div>
+  </div>
         </div>
       </section>
 
