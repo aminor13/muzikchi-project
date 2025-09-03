@@ -33,10 +33,10 @@ export default function QuickSearch() {
       className="w-full md:w-64 bg-gray-800 text-white rounded-lg p-3 text-center transition duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
 
       <option value="">نقش‌ها</option>
-      {roleData.map((role) => (
-        <option key={role.id} value={role.id}>
-        {role.name}
-      </option>
+      {allRoles.map((role) => (
+        <option key={role.value} value={role.value}>
+        {role.label}
+        </option>
       ))}
       </select>
 
