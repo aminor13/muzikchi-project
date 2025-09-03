@@ -73,8 +73,15 @@ export default function Home() {
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
             دنبال موزیسین می‌گردی؟
           </h1>
-          
-           
+          <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards]">
+            <p>
+              موزیکچی بهت کمک می‌کنه با جامعه موسیقی در ارتباط باشی.
+            </p>
+          </div>
+           {/* Quick Search Bar */}
+          <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.4s_forwards]">
+            <QuickSearch />
+          </div>
         </div>
       </section>
 
