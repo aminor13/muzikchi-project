@@ -428,20 +428,18 @@ export default function CompleteProfileForm({ userId, initialProfile, provinces,
               {loading || uploading ? 'در حال ذخیره...' : 'ذخیره'}
             </button>
           </div>
-        </div>
-      </form>
+        </form>
 
-
-      <CompleteProfileModal
-        isOpen={showModal}
-        onClose={() => {
-          setShowModal(false);
-          router.push('/explore');
-        }}
-        title="پروفایل شما تکمیل شد!"
-        message="شما می‌توانید پروفایل خود را در بخش اکسپلور مشاهده کنید."
-      />
-
+        <CompleteProfileModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false);
+            router.push('/explore');
+          }}
+          title="پروفایل شما تکمیل شد!"
+          message="شما می‌توانید پروفایل خود را در بخش اکسپلور مشاهده کنید."
+        />
+      </div>
     </div>
   )
 }
