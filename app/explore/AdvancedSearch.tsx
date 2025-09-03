@@ -321,6 +321,7 @@ export default function AdvancedSearch() {
         // Initial fetch
         //await fetchProfiles(1, false);
         setIsInitialized(true);
+        await fetchProfiles(1, false);
       } catch (e) {
         console.error('Initialization failed:', e);
       }
