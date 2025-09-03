@@ -48,8 +48,8 @@ export default function QuickSearch() {
   
       <option value="">استان‌ها</option>
       {provinceCityData.map((province) => (
-      <option key={province.id} value={province.id}>
-        {province.name}
+      <option key={province["province-fa"]} value={province["province-fa"]}>
+        {province["province-fa"]}
       </option>
       ))}
       </select>
