@@ -60,13 +60,10 @@ export default function AdvancedSearch() {
   const PAGE_SIZE = 12;
 
   // تابع بارگذاری داده‌ها
-  const fetchProfiles = async (pageNum = 1, append = false) => {
+  const fetchProfiles = async (pageNum = 1, append = false, initialFilters?: any) => {
     if (isLoadingRef.current) {
-      console.log('Fetch blocked - already loading');
       return;
     }
-    
-    console.log('Starting fetchProfiles:', { pageNum, append, filters: { name, province, city, role, category, instrument, gender, readyForCooperate, lookingForMusician } });
     
     isLoadingRef.current = true;
     setLoading(true);
@@ -79,33 +76,16 @@ export default function AdvancedSearch() {
     
     // Set timeout
     timeoutRef.current = setTimeout(() => {
-      console.log('Fetch timeout triggered');
       isLoadingRef.current = false;
       setLoading(false);
       setError("درخواست با مشکل مواجه شد. لطفاً دوباره تلاش کنید.");
     }, 10000);
     
     try {
-      console.log('Creating Supabase client...');
       const supabase = createClient();
       
-      // Use retry logic for all database operations
       const executeQuery = async () => {
-        // First, test basic connection with a simple query
-        console.log('Testing basic connection...');
-        const { data: testData, error: testError } = await supabase
-          .from("profiles")
-          .select("id")
-          .limit(1);
         
-        console.log('Basic connection test result:', { testData, testError });
-        
-        if (testError) {
-          console.error('Basic connection failed:', testError);
-          throw new Error('خطا در اتصال به دیتابیس');
-        }
-        
-        console.log('Building query...');
         let query = supabase
           .from("profiles")
           .select(
@@ -117,81 +97,62 @@ export default function AdvancedSearch() {
           .not('avatar_url', 'is', null)
           .neq('avatar_url', '');
         
-        // Stable ordering for pagination (apply after filters too)
-        // Prefer updated_at; then display_name
         query = query.order('updated_at', { ascending: false }).order('display_name', { ascending: true });
 
-        // Defer range application until after filters are applied
-        
-        // Test count query first
-        console.log('Testing count query...');
         const { count: totalCount, error: countError } = await supabase
           .from("profiles")
           .select("*", { count: "exact", head: true })
           .eq('is_complete', true);
         
-        console.log('Count query result:', { totalCount, countError });
         
         if (countError) {
           console.error('Count query failed:', countError);
           throw new Error('خطا در دریافت تعداد پروفایل‌ها');
         }
         
-        console.log('Total profiles count:', totalCount);
+        const filters = initialFilters || {
+          name,
+          province,
+          city,
+          role,
+          category,
+          instrument,
+          gender,
+          readyForCooperate,
+          lookingForMusician
+        };
         
-        // Apply basic filters only
-        if (name) {
-          console.log('Applying name filter:', name);
-          query = query.or(`name.ilike.%${name}%,display_name.ilike.%${name}%`);
+        if (filters.name) {
+          query = query.or(`name.ilike.%${filters.name}%,display_name.ilike.%${filters.name}%`);
         }
-        if (province) {
-          console.log('Applying province filter:', province);
-          query = query.eq("province", province);
+        if (filters.province) {
+          query = query.eq("province", filters.province);
         }
-        if (city) {
-          console.log('Applying city filter:', city);
-          query = query.eq("city", city);
+        if (filters.city) {
+          query = query.eq("city", filters.city);
         }
-        if (role) {
-          console.log('Applying role filter:', role);
-          query = query.contains("roles", [role]);
+        if (filters.role) {
+          query = query.contains("roles", [filters.role]);
         }
-        if (category === 'band') {
-          console.log('Applying band filter');
+        if (filters.category === 'band') {
           query = query.eq("category", 'band');
         }
-        if (gender) {
-          console.log('Applying gender filter:', gender);
-          query = query.eq("gender", gender);
+        if (filters.gender) {
+          query = query.eq("gender", filters.gender);
         }
-        if (readyForCooperate) {
-          console.log('Applying ready for cooperate filter');
+        if (filters.readyForCooperate) {
           query = query.eq("ready_for_cooperate", true);
         }
-        if (lookingForMusician) {
-          console.log('Applying looking for musician filter');
+        if (filters.lookingForMusician) {
           query = query.eq("looking_for_musician", true);
         }
-        
-        // Instrument filter
-        if (instrument) {
-          console.log('Applying instrument filter:', { instrument, role });
-          query = query.eq('profile_instruments.instrument_id', instrument);
-          if (role === 'musician' || role === 'teacher') {
-            query = query.eq('profile_instruments.type', role);
-          }
-        }
+
         // Calculate pagination range after filters
         const start = (pageNum - 1) * PAGE_SIZE;
         const end = start + PAGE_SIZE - 1;
         query = query.range(start, end);
         
-        console.log('Final query before execution:', query);
-        console.log('Executing query...');
         const { data, error: supabaseError, count } = await query;
-        
-        console.log('Query result:', { dataLength: data?.length, error: supabaseError, count });
-        
         if (supabaseError) {
           console.error('Supabase error:', supabaseError);
           throw new Error('خطا در دریافت اطلاعات');
@@ -216,21 +177,19 @@ export default function AdvancedSearch() {
       }
       setHasMore((data?.length || 0) === PAGE_SIZE);
       setRetryCount(0);
-      console.log('Fetch successful:', { resultsCount: data?.length, hasMore: (data?.length || 0) === PAGE_SIZE });
       
     } catch (err) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      console.error('Fetch error:', err);
+
       setResults([]);
       setHasMore(false);
       setError(err instanceof Error ? err.message : "خطا در اتصال به سرور. لطفاً دوباره تلاش کنید.");
     } finally {
       isLoadingRef.current = false;
       setLoading(false);
-      console.log('Fetch completed, loading set to false');
     }
   };
 
@@ -279,18 +238,11 @@ export default function AdvancedSearch() {
 
     const initializeAndFetch = async () => {
       try {
-        console.log('Starting initialization...');
         
         // Check session first
         const supabase = createClient();
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          // Don't throw error for session issues, just log them
-        } else {
-          console.log('Session status:', session ? 'Active' : 'No session');
-        }
         
         // Initialize from URL parameters
         const provinceParam = searchParams.get("province");
@@ -304,28 +256,34 @@ export default function AdvancedSearch() {
         const instrumentParam = searchParams.get("instrument");
         const showSearchFormParam = searchParams.get("showSearchForm");
 
-        console.log('URL parameters loaded:', { provinceParam, cityParam, roleParam, genderParam, categoryParam, nameParam });
+        const filters = {
+        province: provinceParam || "",
+        city: cityParam || "",
+        role: roleParam || "",
+        gender: genderParam || "",
+        category: categoryParam || "",
+        name: nameParam || "",
+        readyForCooperate: readyParam === "1",
+        lookingForMusician: lookingParam === "1",
+        instrument: instrumentParam || ""
+      };
 
         // Set all states at once
-        setProvince(provinceParam || "");
-        setCity(cityParam || "");
-        setRole(roleParam || "");
-        setGender(genderParam || "");
-        setCategory(categoryParam || "");
-        setName(nameParam || "");
-        setReadyForCooperate(readyParam === '1');
-        setLookingForMusician(lookingParam === '1');
-        setInstrument(instrumentParam || "");
-        setShowSearchForm(showSearchFormParam === '1');
+      setProvince(filters.province);
+      setCity(filters.city);
+      setRole(filters.role);
+      setGender(filters.gender);
+      setCategory(filters.category);
+      setName(filters.name);
+      setReadyForCooperate(filters.readyForCooperate);
+      setLookingForMusician(filters.lookingForMusician);
+      setInstrument(filters.instrument);
+      setShowSearchForm(showSearchFormParam === "1");
 
-        // Initial fetch
-        //await fetchProfiles(1, false);
         setIsInitialized(true);
-        await fetchProfiles(1, false);
-      } catch (e) {
-        console.error('Initialization failed:', e);
-      }
-    };
+        fetchProfiles(1, false, filters);
+        
+    
 
     initializeAndFetch();
 
