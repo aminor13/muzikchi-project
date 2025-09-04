@@ -73,14 +73,31 @@ export default function Home() {
           </div>
 
           {/* Quick Search Bar */}
-           <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.4s_forwards]">
-             <QuickSearch />
-           </div>
+            <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.4s_forwards]">
+              <QuickSearch />
+            </div>
 
-           <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.6s_forwards]">
-            <div className="grid grid-cols-1 "></div>
-            <p>موزیکچی کارش اینه که موزیسینای ایران رو به هم وصل کنه</p>
-          </div>
+            <h2 className="mt-16 text-2xl md:text-4xl text-white font-bold mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
+                   <Link href="/events" className="text-orange-400 hover:text-orange-300 font-bold underline underline-offset-4">
+                     اینجا 
+                   </Link>
+                   {' '}هم میتونی اجراهای زنده پیش رو رو دنبال کنی
+            </h2>
+
+            
+            <div className="mt-12 opacity-0 animate-[fadeIn_1s_ease-out_0.8s_forwards]">
+              <div className="max-w-sm mx-auto mt-6 px-4 sm:px-6">
+                <div className="bg-black/70 backdrop-blur rounded-xl p-4 sm:p-5 text-center">
+                  <p className="text-white text-sm sm:text-base leading-relaxed">
+                   موزیکچی کارش اینه که موزیسین‌های ایران رو به هم وصل کنه<br/>
+                  
+                   <Link href="/about" className="text-orange-400 hover:text-orange-300 font-bold underline underline-offset-4">
+                    توضیحات بیشتر
+                   </Link>
+                  </p>
+                </div>
+              </div>
+            </div>
         </div>
       </section>
 
@@ -134,7 +151,7 @@ export default function Home() {
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <PlaceIcon />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">مکان‌های موسیقی</h3>
+              <h3 className="text-xl font-bold text-white mb-4">مکان‌ها</h3>
               <ul className="text-gray-300 text-sm space-y-2">
                 <li>معرفی آموزشگاه</li>
                 <li>معرفی سالن اجرا</li>

@@ -119,7 +119,7 @@ export default function AvatarMosaic() {
       </div>
 
       {/* Dark overlay so white text is readable */}
-      <div className="absolute inset-0 bg-gray-900/65" />
+      <div className="absolute inset-0 bg-black/45" />
     </div>
   )
 }

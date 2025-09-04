@@ -30,7 +30,7 @@ export default function QuickSearch() {
       <select
       value={selectedRole}
       onChange={(e) => setSelectedRole(e.target.value)}
-      className="w-full md:w-64 bg-gray-800 text-white rounded-lg p-3 text-center transition duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
+      className="w-full md:w-64 bg-white text-gray-900 rounded-lg p-3 text-center transition duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
 
       <option value="">چی</option>
       {allRoles.map((role) => (
@@ -44,7 +44,7 @@ export default function QuickSearch() {
       <select
       value={selectedProvince}
       onChange={(e) => setSelectedProvince(e.target.value)}
-      className="w-full md:w-64 bg-gray-800 text-white rounded-lg p-3 text-center transition duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
+      className="w-full md:w-64 bg-white text-gray-900 rounded-lg p-3 text-center transition duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
   
       <option value="">کجا</option>
       {provinceCityData.map((province) => (

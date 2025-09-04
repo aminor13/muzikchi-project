@@ -96,7 +96,7 @@ export default function UpcomingEvents() {
                         alt={currentEvent.title}
                         className="absolute inset-0 w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
+                      {/* <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div> */}
                     </>
                   ) : (
                     <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
