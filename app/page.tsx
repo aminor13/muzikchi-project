@@ -78,6 +78,7 @@ export default function Home() {
            </div>
 
            <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.6s_forwards]">
+            <div className="grid grid-cols-1 "></div>
             <p>موزیکچی کارش اینه که موزیسینای ایران رو به هم وصل کنه</p>
           </div>
         </div>
@@ -87,7 +88,7 @@ export default function Home() {
       <section className="py-16 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white text-center mb-12">چه کسایی می‌تونن عضو بشن؟</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             
             <div className="bg-gray-900 rounded-xl p-6 text-center transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
