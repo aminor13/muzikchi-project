@@ -88,7 +88,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white text-center mb-12">چه کسایی می‌تونن عضو بشن؟</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
-            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
+            
+            <div className="bg-gray-900 rounded-xl p-6 text-center transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <MusicianIcon />
               </div>
@@ -101,7 +102,7 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
+            <div className="bg-gray-900 rounded-xl p-6 text-center transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <BandIcon />
               </div>
@@ -114,7 +115,7 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
+            <div className="bg-gray-900 rounded-xl p-6 text-center transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <TeacherIcon />
               </div>
@@ -127,29 +128,17 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
-              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <SchoolIcon />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">آموزشگاه‌ها</h3>
-              <ul className="text-gray-300 text-sm space-y-2">
-                <li>معرفی آموزشگاه</li>
-                <li>جذب مدرس</li>
-                <li>تبلیغ دوره‌ها</li>
-                <li>ارتباط با هنرجویان</li>
-              </ul>
-            </div>
 
-            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
+            <div className="bg-gray-900 rounded-xl p-6 text-center transition">
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <PlaceIcon />
               </div>
               <h3 className="text-xl font-bold text-white mb-4">مکان‌های موسیقی</h3>
               <ul className="text-gray-300 text-sm space-y-2">
+                <li>معرفی آموزشگاه</li>
                 <li>معرفی سالن اجرا</li>
                 <li>معرفی استودیو ضبط</li>
                 <li>اجاره محل تمرین</li>
-                <li>رزرو آنلاین</li>
               </ul>
             </div>
           </div>
