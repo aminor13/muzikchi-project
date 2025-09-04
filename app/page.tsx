@@ -77,7 +77,7 @@ export default function Home() {
              <QuickSearch />
            </div>
 
-           <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.6s_forwards]">
+           <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.6s_forwards]">
             <p>موزیکچی کارش اینه که موزیسینای ایران رو به هم وصل کنه</p>
           </div>
         </div>
@@ -85,6 +85,79 @@ export default function Home() {
 
       {/* How it Works */}
       <section className="py-16 bg-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">چه کسایی می‌تونن عضو بشن؟</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
+              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <MusicianIcon />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">نوازندگان</h3>
+              <ul className="text-gray-300 text-sm space-y-2">
+                <li>ایجاد پروفایل حرفه‌ای</li>
+                <li>نمایش سابقه و تجربیات</li>
+                <li>معرفی به گروه‌های موسیقی</li>
+                <li>پیدا کردن فرصت‌های همکاری</li>
+              </ul>
+            </div>
+
+            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
+              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <BandIcon />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">گروه‌های موسیقی</h3>
+              <ul className="text-gray-300 text-sm space-y-2">
+                <li>معرفی اعضای گروه</li>
+                <li>جذب نوازنده جدید</li>
+                <li>اطلاع‌رسانی کنسرت‌ها</li>
+                <li>نمایش رزومه گروه</li>
+              </ul>
+            </div>
+
+            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
+              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <TeacherIcon />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">مدرسین</h3>
+              <ul className="text-gray-300 text-sm space-y-2">
+                <li>معرفی دوره‌های آموزشی</li>
+                <li>جذب هنرجو</li>
+                <li>نمایش سوابق تدریس</li>
+                <li>ارتباط با آموزشگاه‌ها</li>
+              </ul>
+            </div>
+
+            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
+              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <SchoolIcon />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">آموزشگاه‌ها</h3>
+              <ul className="text-gray-300 text-sm space-y-2">
+                <li>معرفی آموزشگاه</li>
+                <li>جذب مدرس</li>
+                <li>تبلیغ دوره‌ها</li>
+                <li>ارتباط با هنرجویان</li>
+              </ul>
+            </div>
+
+            <div className="bg-gray-900 rounded-xl p-6 text-center hover:bg-gray-800 transition">
+              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <PlaceIcon />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">مکان‌های موسیقی</h3>
+              <ul className="text-gray-300 text-sm space-y-2">
+                <li>معرفی سالن اجرا</li>
+                <li>معرفی استودیو ضبط</li>
+                <li>اجاره محل تمرین</li>
+                <li>رزرو آنلاین</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* User Categories */}
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white text-center mb-12">چطوری کار می‌کنه؟</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -114,79 +187,6 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold text-white mb-2">ارتباط برقرار کن</h3>
               <p className="text-gray-300">با موزیسینای دیگه همکاری کن</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* User Categories */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">چه کسایی می‌تونن عضو بشن؟</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
-            <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
-              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <MusicianIcon />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">نوازندگان</h3>
-              <ul className="text-gray-300 text-sm space-y-2">
-                <li>ایجاد پروفایل حرفه‌ای</li>
-                <li>نمایش سابقه و تجربیات</li>
-                <li>معرفی به گروه‌های موسیقی</li>
-                <li>پیدا کردن فرصت‌های همکاری</li>
-              </ul>
-            </div>
-
-            <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
-              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <BandIcon />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">گروه‌های موسیقی</h3>
-              <ul className="text-gray-300 text-sm space-y-2">
-                <li>معرفی اعضای گروه</li>
-                <li>جذب نوازنده جدید</li>
-                <li>اطلاع‌رسانی کنسرت‌ها</li>
-                <li>نمایش رزومه گروه</li>
-              </ul>
-            </div>
-
-            <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
-              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <TeacherIcon />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">مدرسین</h3>
-              <ul className="text-gray-300 text-sm space-y-2">
-                <li>معرفی دوره‌های آموزشی</li>
-                <li>جذب هنرجو</li>
-                <li>نمایش سوابق تدریس</li>
-                <li>ارتباط با آموزشگاه‌ها</li>
-              </ul>
-            </div>
-
-            <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
-              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <SchoolIcon />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">آموزشگاه‌ها</h3>
-              <ul className="text-gray-300 text-sm space-y-2">
-                <li>معرفی آموزشگاه</li>
-                <li>جذب مدرس</li>
-                <li>تبلیغ دوره‌ها</li>
-                <li>ارتباط با هنرجویان</li>
-              </ul>
-            </div>
-
-            <div className="bg-gray-800 rounded-xl p-6 text-center hover:bg-gray-700 transition">
-              <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <PlaceIcon />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">مکان‌های موسیقی</h3>
-              <ul className="text-gray-300 text-sm space-y-2">
-                <li>معرفی سالن اجرا</li>
-                <li>معرفی استودیو ضبط</li>
-                <li>اجاره محل تمرین</li>
-                <li>رزرو آنلاین</li>
-              </ul>
             </div>
           </div>
         </div>
