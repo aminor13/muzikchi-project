@@ -61,27 +61,20 @@ export default function Home() {
         
         {/* Content */}
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center">
-          {/* <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
-            <Image
-              src="/first_logo.png"
-              alt="موزیکچی"
-              width={400}
-              height={130}
-              className="mx-auto"
-            />
-          </div> */}
+         
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
             دنبال موزیسین می‌گردی؟
           </h1>
           <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards]">
             <p>
-              موزیکچی بهت کمک می‌کنه با جامعه موسیقی در ارتباط باشی.
+            اینجا میتونی پیدا کنی
             </p>
           </div>
            {/* Quick Search Bar */}
           <div className="opacity-0 animate-[fadeIn_1s_ease-out_0.4s_forwards]">
             <QuickSearch />
           </div>
+          <p>موزیکچی کارش اینه که موزیسینای ایران رو به هم وصل کنه</p>
         </div>
       </section>
 
