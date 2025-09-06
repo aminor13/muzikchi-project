@@ -1,7 +1,7 @@
 'use client'
 import { Metadata } from 'next'
 import Link from 'next/link'
-//import Image from 'next/image'
+import Image from 'next/image'
 import AvatarMosaic from '@/components/AvatarMosaic'
 import QuickSearch from '@/components/QuickSearch'
 import UpcomingEvents from '@/components/UpcomingEvents'
@@ -62,9 +62,13 @@ export default function Home() {
         {/* Content */}
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center">
 
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
-            دنبال موزیسین می‌گردی؟
-          </h1>
+        <Image 
+           src="/slogan72.png"
+          alt="Slogan of the website"
+          width={600}
+          height={193}
+          className="mx-auto opacity-0 animate-[fadeIn_1s_ease-out_forwards]"
+        />
 
           <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards]">
             <p>
@@ -77,14 +81,12 @@ export default function Home() {
               <QuickSearch />
             </div>
 
-            <h2 className="mt-16 text-2xl md:text-4xl text-white font-bold mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
+            <h2 className="mt-40 text-2xl md:text-4xl text-white font-bold mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
                    <Link href="/events" className="text-orange-400 hover:text-orange-300 font-bold underline underline-offset-4">
                      اینجا 
                    </Link>
-                   {' '}هم میتونی اجراهای زنده پیش رو رو دنبال کنی
+                   {' '}هم میتونی اجراهای زنده پیش رو رو ببینی
             </h2>
-
-            
             <div className="mt-12 opacity-0 animate-[fadeIn_1s_ease-out_0.8s_forwards]">
               <div className="max-w-sm mx-auto mt-6 px-4 sm:px-6">
                 <div className="bg-black/70 backdrop-blur rounded-xl p-4 sm:p-5 text-center">
@@ -92,15 +94,17 @@ export default function Home() {
                    موزیکچی کارش اینه که موزیسین‌های ایران رو به هم وصل کنه<br/>
                   
                    <Link href="/about" className="text-orange-400 hover:text-orange-300 font-bold underline underline-offset-4">
-                    توضیحات بیشتر
+                     بیشتر
                    </Link>
                   </p>
                 </div>
               </div>
             </div>
+            
+            
         </div>
       </section>
-
+      
       {/* How it Works */}
       <section className="py-16 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
