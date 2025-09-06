@@ -19,6 +19,7 @@
     "@supabase/supabase-js": "^2.39.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.12.1",
     "jalali-convertor": "^1.1.9",
     "leaflet": "^1.9.4",
@@ -33,6 +34,7 @@
     "react-leaflet": "^4.2.1",
     "react-time-picker": "^7.0.0",
     "react-turnstile": "^1.1.4",
+    "supabase": "^2.39.2",
     "swiper": "^11.2.6",
     "tailwind-merge": "^3.3.0"
   },

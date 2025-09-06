@@ -81,27 +81,16 @@ export default function Home() {
               <QuickSearch />
             </div>
 
-            <h2 className="mt-40 text-2xl md:text-4xl text-white font-bold mb-6 opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
-                   <Link href="/events" className="text-orange-400 hover:text-orange-300 font-bold underline underline-offset-4">
-                     اینجا 
-                   </Link>
-                   {' '}هم میتونی اجراهای زنده پیش رو رو ببینی
-            </h2>
-            <div className="mt-12 opacity-0 animate-[fadeIn_1s_ease-out_0.8s_forwards]">
-              <div className="max-w-sm mx-auto mt-6 px-4 sm:px-6">
-                <div className="bg-black/70 backdrop-blur rounded-xl p-4 sm:p-5 text-center">
-                  <p className="text-white text-sm sm:text-base leading-relaxed">
-                   موزیکچی موزیسین‌ها رو به هم وصل کنه<br/>
-                  
-                   <Link href="/about" className="text-orange-400 hover:text-orange-300 font-bold underline underline-offset-4">
-                     بیشتر
-                   </Link>
-                  </p>
-                </div>
-              </div>
-            </div>
             
             
+            
+        </div>
+      </section>
+      {/* Upcoming Events */}
+      <section className="py-16 bg-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">رویدادهای پیش رو</h2>
+          <UpcomingEvents />
         </div>
       </section>
       
@@ -115,7 +104,7 @@ export default function Home() {
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <MusicianIcon />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">نوازندگان</h3>
+              <h3 className="text-xl font-bold text-white mb-4">موزیسین‌ها</h3>
               <ul className="text-gray-300 text-sm space-y-2">
                 <li>ایجاد پروفایل حرفه‌ای</li>
                 <li>نمایش سابقه و تجربیات</li>
@@ -155,7 +144,7 @@ export default function Home() {
               <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <PlaceIcon />
               </div>
-              <h3 className="text-xl font-bold text-white mb-4">مکان‌ها</h3>
+              <h3 className="text-xl font-bold text-white mb-4">مکان‌های خدماتی</h3>
               <ul className="text-gray-300 text-sm space-y-2">
                 <li>معرفی آموزشگاه</li>
                 <li>معرفی سالن اجرا</li>
@@ -203,13 +192,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Upcoming Events */}
-      <section className="py-16 bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">رویدادهای پیش رو</h2>
-          <UpcomingEvents />
-        </div>
-      </section>
+      
 
       {/* Call to Action */}
       <section className="py-16 bg-gradient-to-r from-orange-600 to-orange-400">

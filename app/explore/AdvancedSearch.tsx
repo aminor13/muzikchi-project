@@ -146,6 +146,9 @@ export default function AdvancedSearch() {
         if (filters.lookingForMusician) {
           query = query.eq("looking_for_musician", true);
         }
+        if (filters.instrument) {
+          query = query.eq("profile_instruments.instrument_id", filters.instrument);
+        }
 
         // Calculate pagination range after filters
         const start = (pageNum - 1) * PAGE_SIZE;
@@ -503,7 +506,7 @@ export default function AdvancedSearch() {
                   value={role}
                   onChange={e => setRole(e.target.value)}
                 >
-                  <option value="">همه نقش‌ها</option>
+                  <option value="">همه عناوین</option>
                   {allRoles.map((r: any) => (
                     <option key={r.value} value={r.value}>{r.label}</option>
                   ))}
