@@ -12,7 +12,7 @@ export default function Footer() {
         </span>
         {/* Wrap the image in an anchor tag for the link */}
         <a href="https://www.instagram.com/muzikchi.official/" className="ml-2">
-          <img src="/instagram_icon.png" alt="instagram logo" width={30} height={30} />
+          <img src="/instagram.png" alt="instagram logo" width={30} height={30} />
         </a>
       </span>
     </footer>
