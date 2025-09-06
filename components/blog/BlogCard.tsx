@@ -3,8 +3,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { BlogPost } from '@/types/blog'
 import { formatDistanceToNow } from 'date-fns'
-import { faPersian } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 interface BlogCardProps {
   post: BlogPost

@@ -64,7 +64,7 @@ export default function BlogSearch({ onSearch, categories, loading = false }: Bl
             <span className="text-gray-400 text-sm">فیلترهای فعال:</span>
             {searchQuery && (
               <span className="px-2 py-1 bg-orange-500 text-white text-xs rounded-full">
-                "{searchQuery}"
+                &ldquo;{searchQuery}&rdquo;
               </span>
             )}
             {selectedCategory && (
