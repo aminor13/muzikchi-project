@@ -63,14 +63,14 @@ export default function Home() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center">
 
         <Image 
-           src="/slogan72.png"
+           src="/slogan72-2.png"
           alt="Slogan of the website"
           width={600}
           height={193}
           className="mx-auto opacity-0 animate-[fadeIn_1s_ease-out_forwards]"
         />
 
-          <div className="text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards]">
+          <div className="mt-10 text-xl text-gray-200 space-y-6 opacity-0 animate-[fadeIn_1s_ease-out_0.2s_forwards]">
             <p>
             اینجا میتونی پیدا کنی
             </p>
@@ -91,7 +91,7 @@ export default function Home() {
               <div className="max-w-sm mx-auto mt-6 px-4 sm:px-6">
                 <div className="bg-black/70 backdrop-blur rounded-xl p-4 sm:p-5 text-center">
                   <p className="text-white text-sm sm:text-base leading-relaxed">
-                   موزیکچی کارش اینه که موزیسین‌های ایران رو به هم وصل کنه<br/>
+                   موزیکچی موزیسین‌ها رو به هم وصل کنه<br/>
                   
                    <Link href="/about" className="text-orange-400 hover:text-orange-300 font-bold underline underline-offset-4">
                      بیشتر
