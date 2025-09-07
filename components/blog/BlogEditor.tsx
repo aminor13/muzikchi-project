@@ -16,6 +16,7 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
   const [content, setContent] = useState(post?.content || '')
   const [featuredImageUrl, setFeaturedImageUrl] = useState(post?.featured_image_url || '')
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [localPreview, setLocalPreview] = useState<string | null>(null)
   const [categoryId, setCategoryId] = useState(post?.category_id || '')
   const [tags, setTags] = useState(post?.tags?.join(', ') || '')
   const [status, setStatus] = useState<'draft' | 'published' | 'archived'>(post?.status || 'draft')
@@ -64,6 +65,10 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
   const handleImageUpload = async (file: File) => {
     try {
       setUploadingImage(true)
+      // Local preview immediately
+      const objectUrl = URL.createObjectURL(file)
+      setLocalPreview(objectUrl)
+
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('برای آپلود تصویر باید وارد شوید')
 
@@ -74,7 +79,7 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       const { error: uploadError } = await supabase
         .storage
         .from('blog-images')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false, contentType: file.type })
+        .upload(filePath, file, { cacheControl: '31536000', upsert: false, contentType: file.type })
 
       if (uploadError) throw uploadError
 
@@ -84,10 +89,25 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
         .getPublicUrl(filePath)
 
       const publicUrl = publicUrlData.publicUrl
+
+      // Verify uploaded file is accessible and non-empty
+      try {
+        const headResp = await fetch(publicUrl, { method: 'HEAD' })
+        const ok = headResp.ok
+        const contentLength = headResp.headers.get('content-length')
+        const contentType = headResp.headers.get('content-type')
+        if (!ok || !contentLength || contentLength === '0' || !(contentType || '').startsWith('image/')) {
+          throw new Error('فایل آپلود شده قابل خواندن نیست یا نوع آن تصویر نیست')
+        }
+      } catch (verErr) {
+        console.error('Post-upload verification failed:', verErr)
+        alert('تصویر آپلود شد ولی خواندن آن ممکن نشد. لطفاً پالیسی‌های باکت و عمومی‌بودن را بررسی کنید.')
+      }
+
       setFeaturedImageUrl(publicUrl)
-    } catch (e) {
+    } catch (e: any) {
       console.error('Image upload failed:', e)
-      alert('خطا در آپلود تصویر')
+      alert(e?.message || 'خطا در آپلود تصویر')
     } finally {
       setUploadingImage(false)
     }
@@ -222,9 +242,9 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
               <p className="text-gray-400 text-xs mt-2">فرمت‌های مجاز: jpg, jpeg, png, webp — حداکثر 5MB</p>
             </div>
             <div>
-              {featuredImageUrl ? (
+              {localPreview || featuredImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={featuredImageUrl} alt="پیش‌نمایش" className="w-full h-32 object-cover rounded-lg border border-gray-700" />
+                <img src={localPreview || featuredImageUrl} alt="پیش‌نمایش" className="w-full h-32 object-cover rounded-lg border border-gray-700" />
               ) : (
                 <div className="w-full h-32 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400">
                   بدون پیش‌نمایش
