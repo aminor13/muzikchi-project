@@ -115,7 +115,7 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       
       const publicUrl = publicUrlData.publicUrl;
 
-      // New: Add a retry mechanism for verification
+      // New: Add a retry mechanism for verification using a GET request
       let verified = false;
       let retries = 0;
       const maxRetries = 5;
@@ -123,11 +123,10 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
 
       while (!verified && retries < maxRetries) {
           try {
-              const headResp = await fetch(publicUrl, { method: 'HEAD' });
-              const contentLength = headResp.headers.get('content-length');
-              const contentType = headResp.headers.get('content-type');
+              const resp = await fetch(publicUrl);
+              const contentLength = resp.headers.get('content-length');
               
-              if (headResp.ok && contentLength && contentLength !== '0' && (contentType || '').startsWith('image/')) {
+              if (resp.ok && contentLength && parseInt(contentLength, 10) > 0) {
                   verified = true;
               } else {
                   throw new Error('Verificaton failed.');
