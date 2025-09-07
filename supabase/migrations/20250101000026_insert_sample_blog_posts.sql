@@ -207,3 +207,4 @@ UPDATE blog_posts SET view_count = 78 WHERE slug = 'forming-music-band';
 UPDATE blog_posts SET view_count = 92 WHERE slug = 'buying-first-electric-guitar';
 UPDATE blog_posts SET view_count = 156 WHERE slug = 'history-rock-music-iran';
 UPDATE blog_posts SET view_count = 203 WHERE slug = 'musikchi-platform-guide';
+

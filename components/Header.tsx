@@ -447,7 +447,7 @@ export default function Header() {
 
                                    <Link 
                                       href="/messages" 
-                                      className="text-white hover:text-orange-500 text-sm font-medium"
+                                      className="relative text-white hover:text-orange-500 text-sm font-medium"
                                       onClick={() => { setMenuOpen(false); setProfileMenuOpen(false); }}
                                    >
                                    ارسال نظر
