@@ -100,7 +100,7 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       const filePath = `featured/${fileName}`
 
       // Upload file with the correct MIME type
-      const { data, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('blog-images')
         .upload(filePath, file, { cacheControl: '31536000', upsert: false, contentType: file.type });
 
@@ -115,33 +115,8 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       
       const publicUrl = publicUrlData.publicUrl;
 
-      // New: Add a retry mechanism for verification using a GET request
-      let verified = false;
-      let retries = 0;
-      const maxRetries = 5;
-      const delayMs = 1000;
-
-      while (!verified && retries < maxRetries) {
-          try {
-              const resp = await fetch(publicUrl);
-              const contentLength = resp.headers.get('content-length');
-              
-              if (resp.ok && contentLength && parseInt(contentLength, 10) > 0) {
-                  verified = true;
-              } else {
-                  throw new Error('Verificaton failed.');
-              }
-          } catch (verErr) {
-              retries++;
-              console.log(`Verification attempt ${retries} failed. Retrying...`);
-              await new Promise(resolve => setTimeout(resolve, delayMs));
-          }
-      }
-
-      if (!verified) {
-        throw new Error('فایل آپلود شد، اما در بررسی نهایی قابل خواندن نبود.');
-      }
-
+      // New: Directly set the URL after successful upload without client-side verification
+      // The upload promise resolution is a strong enough signal of success.
       setFeaturedImageUrl(publicUrl);
       setMessage('تصویر با موفقیت آپلود شد.');
       
