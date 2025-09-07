@@ -99,10 +99,13 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
       const filePath = `featured/${fileName}`
 
-      // Upload file with the correct MIME type
+      // Create a new Blob to ensure the file data is fully loaded and not a stream
+      const blob = new Blob([file], { type: file.type });
+
+      // Upload the blob instead of the original file object
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('blog-images')
-        .upload(filePath, file, { cacheControl: '31536000', upsert: false, contentType: file.type });
+        .upload(filePath, blob, { cacheControl: '31536000', upsert: false, contentType: file.type });
 
       if (uploadError) {
         throw new Error(`خطا در آپلود به Supabase: ${uploadError.message}`);
@@ -115,8 +118,9 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       
       const publicUrl = publicUrlData.publicUrl;
 
-      // New: Directly set the URL after successful upload without client-side verification
-      // The upload promise resolution is a strong enough signal of success.
+      // Add a small delay to ensure the URL is propagated
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       setFeaturedImageUrl(publicUrl);
       setMessage('تصویر با موفقیت آپلود شد.');
       
