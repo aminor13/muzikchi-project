@@ -75,63 +75,37 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
   const handleImageUpload = async (file: File) => {
     try {
       setUploadingImage(true)
-      setMessage(null);
+      const objectUrl = URL.createObjectURL(file)
+      setLocalPreview(objectUrl)
 
-      // Verify file type and size before uploading
+      // Validations similar to profile form
       if (!file.type.startsWith('image/')) {
-        throw new Error('فایل انتخاب شده یک تصویر معتبر نیست.');
+        alert('لطفاً یک فایل تصویر انتخاب کنید')
+        return
       }
       if (file.size > 5 * 1024 * 1024) {
-        throw new Error('حجم فایل بیشتر از ۵ مگابایت است.');
+        alert('حجم تصویر باید کمتر از 5MB باشد')
+        return
       }
 
-      // Local preview immediately
-      if (localPreview) {
-        URL.revokeObjectURL(localPreview);
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload-blog-image', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const result = await response.json()
+      if (!response.ok) {
+        throw new Error(result.error || 'خطا در آپلود تصویر')
       }
-      const objectUrl = URL.createObjectURL(file);
-      setLocalPreview(objectUrl);
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('برای آپلود تصویر باید وارد شوید')
-
-      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
-      const filePath = `featured/${fileName}`
-
-      // Create a new Blob to ensure the file data is fully loaded and not a stream
-      const blob = new Blob([file], { type: file.type });
-
-      // Upload the blob instead of the original file object
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('blog-images')
-        .upload(filePath, blob, { cacheControl: '31536000', upsert: false, contentType: file.type });
-
-      if (uploadError) {
-        throw new Error(`خطا در آپلود به Supabase: ${uploadError.message}`);
-      }
-      
-      const { data: publicUrlData } = supabase
-        .storage
-        .from('blog-images')
-        .getPublicUrl(filePath)
-      
-      const publicUrl = publicUrlData.publicUrl;
-
-      // Add a small delay to ensure the URL is propagated
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      setFeaturedImageUrl(publicUrl);
-      setMessage('تصویر با موفقیت آپلود شد.');
-      
+      setFeaturedImageUrl(result.url)
+      setLocalPreview(null)
     } catch (e: any) {
       console.error('Image upload failed:', e)
-      setMessage(e?.message || 'خطا در آپلود تصویر');
-      if (localPreview) {
-          URL.revokeObjectURL(localPreview);
-      }
-      setLocalPreview(null);
-      setFeaturedImageUrl('');
+      alert(e?.message || 'خطا در آپلود تصویر')
     } finally {
       setUploadingImage(false)
     }
