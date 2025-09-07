@@ -22,12 +22,22 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
   const [status, setStatus] = useState<'draft' | 'published' | 'archived'>(post?.status || 'draft')
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<BlogCategory[]>([])
+  const [message, setMessage] = useState<string | null>(null);
 
   const supabase = createClient()
 
   useEffect(() => {
     loadCategories()
   }, [])
+  
+  // Clean up local preview URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (localPreview) {
+        URL.revokeObjectURL(localPreview)
+      }
+    }
+  }, [localPreview])
 
   const loadCategories = async () => {
     const { data } = await supabase
@@ -65,9 +75,22 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
   const handleImageUpload = async (file: File) => {
     try {
       setUploadingImage(true)
+      setMessage(null);
+
+      // Verify file type and size before uploading
+      if (!file.type.startsWith('image/')) {
+        throw new Error('فایل انتخاب شده یک تصویر معتبر نیست.');
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('حجم فایل بیشتر از ۵ مگابایت است.');
+      }
+
       // Local preview immediately
-      const objectUrl = URL.createObjectURL(file)
-      setLocalPreview(objectUrl)
+      if (localPreview) {
+        URL.revokeObjectURL(localPreview);
+      }
+      const objectUrl = URL.createObjectURL(file);
+      setLocalPreview(objectUrl);
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('برای آپلود تصویر باید وارد شوید')
@@ -76,38 +99,44 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
       const filePath = `${user.id}/featured/${fileName}`
 
-      const { error: uploadError } = await supabase
-        .storage
+      // Upload file with the correct MIME type
+      const { data, error: uploadError } = await supabase.storage
         .from('blog-images')
-        .upload(filePath, file, { cacheControl: '31536000', upsert: false, contentType: file.type })
+        .upload(filePath, file, { cacheControl: '31536000', upsert: false, contentType: file.type });
 
-      if (uploadError) throw uploadError
-
+      if (uploadError) {
+        throw uploadError;
+      }
+      
       const { data: publicUrlData } = supabase
         .storage
         .from('blog-images')
         .getPublicUrl(filePath)
+      
+      const publicUrl = publicUrlData.publicUrl;
 
-      const publicUrl = publicUrlData.publicUrl
-
-      // Verify uploaded file is accessible and non-empty
-      try {
-        const headResp = await fetch(publicUrl, { method: 'HEAD' })
-        const ok = headResp.ok
-        const contentLength = headResp.headers.get('content-length')
-        const contentType = headResp.headers.get('content-type')
-        if (!ok || !contentLength || contentLength === '0' || !(contentType || '').startsWith('image/')) {
-          throw new Error('فایل آپلود شده قابل خواندن نیست یا نوع آن تصویر نیست')
-        }
-      } catch (verErr) {
-        console.error('Post-upload verification failed:', verErr)
-        alert('تصویر آپلود شد ولی خواندن آن ممکن نشد. لطفاً پالیسی‌های باکت و عمومی‌بودن را بررسی کنید.')
+      // New: Verify uploaded file is actually readable
+      // This is the core of your problem. Adding a proper verification here.
+      const headResp = await fetch(publicUrl, { method: 'HEAD' });
+      const ok = headResp.ok;
+      const contentLength = headResp.headers.get('content-length');
+      const contentType = headResp.headers.get('content-type');
+      
+      if (!ok || !contentLength || contentLength === '0' || !(contentType || '').startsWith('image/')) {
+        throw new Error('فایل آپلود شد، اما در بررسی نهایی قابل خواندن نبود. لطفاً از سلامت فایل اطمینان حاصل کنید.');
       }
 
-      setFeaturedImageUrl(publicUrl)
+      setFeaturedImageUrl(publicUrl);
+      setMessage('تصویر با موفقیت آپلود شد.');
+      
     } catch (e: any) {
       console.error('Image upload failed:', e)
-      alert(e?.message || 'خطا در آپلود تصویر')
+      setMessage(e?.message || 'خطا در آپلود تصویر');
+      if (localPreview) {
+          URL.revokeObjectURL(localPreview);
+      }
+      setLocalPreview(null);
+      setFeaturedImageUrl('');
     } finally {
       setUploadingImage(false)
     }
@@ -115,11 +144,12 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) {
-      alert('لطفاً عنوان و محتوا را پر کنید')
+      setMessage('لطفاً عنوان و محتوا را پر کنید.');
       return
     }
 
     setLoading(true)
+    setMessage(null);
 
     try {
       const postData = {
@@ -165,7 +195,7 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       }
     } catch (error) {
       console.error('Error saving post:', error)
-      alert('خطا در ذخیره مقاله')
+      setMessage('خطا در ذخیره مقاله');
     } finally {
       setLoading(false)
     }
@@ -309,6 +339,13 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
             placeholder="محتوای مقاله را وارد کنید..."
           />
         </div>
+        
+        {/* Message for user */}
+        {message && (
+          <div className="mt-4 p-4 rounded-lg bg-gray-700 text-sm text-white">
+            {message}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-4 pt-6">
@@ -330,4 +367,3 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
     </div>
   )
 }
-
