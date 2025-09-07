@@ -96,8 +96,8 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       if (!user) throw new Error('برای آپلود تصویر باید وارد شوید')
 
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
-      const filePath = `${user.id}/featured/${fileName}`
+      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
+      const filePath = `featured/${fileName}`
 
       // Upload file with the correct MIME type
       const { data, error: uploadError } = await supabase.storage
@@ -105,7 +105,7 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
         .upload(filePath, file, { cacheControl: '31536000', upsert: false, contentType: file.type });
 
       if (uploadError) {
-        throw uploadError;
+        throw new Error(`خطا در آپلود به Supabase: ${uploadError.message}`);
       }
       
       const { data: publicUrlData } = supabase
@@ -115,15 +115,32 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       
       const publicUrl = publicUrlData.publicUrl;
 
-      // New: Verify uploaded file is actually readable
-      // This is the core of your problem. Adding a proper verification here.
-      const headResp = await fetch(publicUrl, { method: 'HEAD' });
-      const ok = headResp.ok;
-      const contentLength = headResp.headers.get('content-length');
-      const contentType = headResp.headers.get('content-type');
-      
-      if (!ok || !contentLength || contentLength === '0' || !(contentType || '').startsWith('image/')) {
-        throw new Error('فایل آپلود شد، اما در بررسی نهایی قابل خواندن نبود. لطفاً از سلامت فایل اطمینان حاصل کنید.');
+      // New: Add a retry mechanism for verification
+      let verified = false;
+      let retries = 0;
+      const maxRetries = 5;
+      const delayMs = 1000;
+
+      while (!verified && retries < maxRetries) {
+          try {
+              const headResp = await fetch(publicUrl, { method: 'HEAD' });
+              const contentLength = headResp.headers.get('content-length');
+              const contentType = headResp.headers.get('content-type');
+              
+              if (headResp.ok && contentLength && contentLength !== '0' && (contentType || '').startsWith('image/')) {
+                  verified = true;
+              } else {
+                  throw new Error('Verificaton failed.');
+              }
+          } catch (verErr) {
+              retries++;
+              console.log(`Verification attempt ${retries} failed. Retrying...`);
+              await new Promise(resolve => setTimeout(resolve, delayMs));
+          }
+      }
+
+      if (!verified) {
+        throw new Error('فایل آپلود شد، اما در بررسی نهایی قابل خواندن نبود.');
       }
 
       setFeaturedImageUrl(publicUrl);
