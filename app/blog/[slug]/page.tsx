@@ -258,7 +258,7 @@ export default function BlogPostPage() {
 
                 {/* Content */}
                 <div 
-                  className="prose prose-lg prose-invert max-w-none"
+                  className="prose prose-lg prose-invert max-w-none text-gray-100"
                   dangerouslySetInnerHTML={{ __html: post.content }}
                 />
 

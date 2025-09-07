@@ -15,6 +15,7 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
   const [excerpt, setExcerpt] = useState(post?.excerpt || '')
   const [content, setContent] = useState(post?.content || '')
   const [featuredImageUrl, setFeaturedImageUrl] = useState(post?.featured_image_url || '')
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [categoryId, setCategoryId] = useState(post?.category_id || '')
   const [tags, setTags] = useState(post?.tags?.join(', ') || '')
   const [status, setStatus] = useState<'draft' | 'published' | 'archived'>(post?.status || 'draft')
@@ -58,6 +59,38 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
     const wordsPerMinute = 200
     const words = content.split(/\s+/).length
     return Math.ceil(words / wordsPerMinute)
+  }
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setUploadingImage(true)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('برای آپلود تصویر باید وارد شوید')
+
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
+      const filePath = `${user.id}/featured/${fileName}`
+
+      const { error: uploadError } = await supabase
+        .storage
+        .from('blog-images')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false, contentType: file.type })
+
+      if (uploadError) throw uploadError
+
+      const { data: publicUrlData } = supabase
+        .storage
+        .from('blog-images')
+        .getPublicUrl(filePath)
+
+      const publicUrl = publicUrlData.publicUrl
+      setFeaturedImageUrl(publicUrl)
+    } catch (e) {
+      console.error('Image upload failed:', e)
+      alert('خطا در آپلود تصویر')
+    } finally {
+      setUploadingImage(false)
+    }
   }
 
   const handleSave = async () => {
@@ -160,13 +193,45 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
         {/* Featured Image */}
         <div>
           <label className="block text-white font-medium mb-2">تصویر شاخص</label>
-          <input
-            type="url"
-            value={featuredImageUrl}
-            onChange={(e) => setFeaturedImageUrl(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            placeholder="آدرس تصویر شاخص..."
-          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <input
+                type="url"
+                value={featuredImageUrl}
+                onChange={(e) => setFeaturedImageUrl(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                placeholder="آدرس تصویر شاخص..."
+              />
+              <div className="mt-3 flex items-center gap-3">
+                <label className="inline-flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg cursor-pointer transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleImageUpload(file)
+                    }}
+                    className="hidden"
+                  />
+                  {uploadingImage ? 'در حال آپلود...' : 'آپلود تصویر'}
+                </label>
+                {featuredImageUrl && (
+                  <span className="text-gray-400 text-sm">URL تنظیم شد</span>
+                )}
+              </div>
+              <p className="text-gray-400 text-xs mt-2">فرمت‌های مجاز: jpg, jpeg, png, webp — حداکثر 5MB</p>
+            </div>
+            <div>
+              {featuredImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={featuredImageUrl} alt="پیش‌نمایش" className="w-full h-32 object-cover rounded-lg border border-gray-700" />
+              ) : (
+                <div className="w-full h-32 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400">
+                  بدون پیش‌نمایش
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Category and Status */}
