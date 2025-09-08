@@ -25,7 +25,7 @@ export default function QuickSearch() {
   };
 
   return (
-    <div className="mt-8 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+    <div className="mt-8 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-y-0 md:gap-x-8">
       {/* Role Dropdown */}
       <select
       value={selectedRole}

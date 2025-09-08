@@ -7,6 +7,7 @@ import StarterKit from '@tiptap/starter-kit'
 import LinkExtension from '@tiptap/extension-link'
 import ImageExtension from '@tiptap/extension-image'
 import Youtube from '@tiptap/extension-youtube'
+import Heading from '@tiptap/extension-heading'
 
 interface BlogEditorProps {
   post?: BlogPost
@@ -118,7 +119,10 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: false, // we'll declare Heading explicitly to avoid conflicts
+      }),
+      Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
       LinkExtension.configure({ openOnClick: true, autolink: true }),
       ImageExtension.configure({ inline: false, allowBase64: false }),
       Youtube.configure({ controls: true, nocookie: false })
@@ -320,19 +324,18 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
           <label className="block text-white font-medium mb-2">محتوای مقاله</label>
           {/* Toolbar */}
           <div className="flex flex-wrap gap-2 mb-3">
-            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleBold().run()}>بولد</button>
-            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleItalic().run()}>ایتالیک</button>
-            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>H2</button>
-            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}>H3</button>
-            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleBulletList().run()}>• لیست</button>
-            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleOrderedList().run()}>1. لیست</button>
-            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => {
+            <button type="button" disabled={!editor} className={`px-3 py-1 rounded ${editor?.isActive('bold') ? 'bg-orange-600 text-white' : 'bg-gray-700 text-white'}`} onClick={() => editor?.chain().focus().toggleBold().run()}>بولد</button>
+            <button type="button" disabled={!editor} className={`px-3 py-1 rounded ${editor?.isActive('italic') ? 'bg-orange-600 text-white' : 'bg-gray-700 text-white'}`} onClick={() => editor?.chain().focus().toggleItalic().run()}>ایتالیک</button>
+            <button type="button" disabled={!editor} className={`px-3 py-1 rounded ${editor?.isActive('heading', { level: 2 }) ? 'bg-orange-600 text-white' : 'bg-gray-700 text-white'}`} onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>H2</button>
+            <button type="button" disabled={!editor} className={`px-3 py-1 rounded ${editor?.isActive('heading', { level: 3 }) ? 'bg-orange-600 text-white' : 'bg-gray-700 text-white'}`} onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}>H3</button>
+            <button type="button" disabled={!editor} className={`px-3 py-1 rounded ${editor?.isActive('bulletList') ? 'bg-orange-600 text-white' : 'bg-gray-700 text-white'}`} onClick={() => editor?.chain().focus().toggleBulletList().run()}>• لیست</button>
+            <button type="button" disabled={!editor} className={`px-3 py-1 rounded ${editor?.isActive('orderedList') ? 'bg-orange-600 text-white' : 'bg-gray-700 text-white'}`} onClick={() => editor?.chain().focus().toggleOrderedList().run()}>1. لیست</button>
+            <button type="button" disabled={!editor} className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => {
               const url = prompt('آدرس لینک:') || ''
               if (!url) return
               editor?.chain().focus().extendMarkRange('link').setLink({ href: url, target: '_blank' }).run()
             }}>افزودن لینک</button>
-            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={async () => {
-              // Reuse API route for image upload
+            <button type="button" disabled={!editor} className="px-3 py-1 bg-gray-700 text-white rounded" onClick={async () => {
               const input = document.createElement('input')
               input.type = 'file'
               input.accept = 'image/*'
@@ -348,7 +351,7 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
               }
               input.click()
             }}>افزودن تصویر</button>
-            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => {
+            <button type="button" disabled={!editor} className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => {
               const url = prompt('آدرس ویدئوی یوتیوب:') || ''
               if (!url) return
               editor?.chain().focus().setYoutubeVideo({ src: url, width: 640, height: 360 }).run()
