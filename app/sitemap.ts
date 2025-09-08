@@ -16,6 +16,10 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 // URL اصلی سایت شما
 const YOUR_WEBSITE_URL = 'https://muzikchi.ir';
 
+// نام جداول را از env قابل تنظیم می‌کنیم تا با اسامی جداول موجود همخوانی داشته باشد
+const POSTS_TABLE = process.env.NEXT_PUBLIC_SUPABASE_POSTS_TABLE || 'posts';
+const USERS_TABLE = process.env.NEXT_PUBLIC_SUPABASE_USERS_TABLE || 'profiles';
+
 export default async function sitemap() {
   try {
     if (!supabase) {
@@ -24,7 +28,7 @@ export default async function sitemap() {
     }
 
     const { data: posts, error: postsError } = await supabase
-      .from('posts')
+      .from(POSTS_TABLE)
       .select('slug, updated_at');
     
     if (postsError) {
@@ -33,7 +37,7 @@ export default async function sitemap() {
     }
 
     const { data: users, error: usersError } = await supabase
-      .from('users')
+      .from(USERS_TABLE)
       .select('username');
 
     if (usersError) {
