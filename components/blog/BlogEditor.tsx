@@ -2,6 +2,11 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { BlogPost, BlogCategory } from '@/types/blog'
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import LinkExtension from '@tiptap/extension-link'
+import ImageExtension from '@tiptap/extension-image'
+import Youtube from '@tiptap/extension-youtube'
 
 interface BlogEditorProps {
   post?: BlogPost
@@ -110,6 +115,19 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
       setUploadingImage(false)
     }
   }
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      LinkExtension.configure({ openOnClick: true, autolink: true }),
+      ImageExtension.configure({ inline: false, allowBase64: false }),
+      Youtube.configure({ controls: true, nocookie: false })
+    ],
+    content: post?.content || '',
+    onUpdate({ editor }) {
+      setContent(editor.getHTML())
+    }
+  })
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) {
@@ -300,13 +318,45 @@ export default function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) 
         {/* Content */}
         <div>
           <label className="block text-white font-medium mb-2">محتوای مقاله</label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={15}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            placeholder="محتوای مقاله را وارد کنید..."
-          />
+          {/* Toolbar */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleBold().run()}>بولد</button>
+            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleItalic().run()}>ایتالیک</button>
+            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>H2</button>
+            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}>H3</button>
+            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleBulletList().run()}>• لیست</button>
+            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => editor?.chain().focus().toggleOrderedList().run()}>1. لیست</button>
+            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => {
+              const url = prompt('آدرس لینک:') || ''
+              if (!url) return
+              editor?.chain().focus().extendMarkRange('link').setLink({ href: url, target: '_blank' }).run()
+            }}>افزودن لینک</button>
+            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={async () => {
+              // Reuse API route for image upload
+              const input = document.createElement('input')
+              input.type = 'file'
+              input.accept = 'image/*'
+              input.onchange = async () => {
+                const file = input.files?.[0]
+                if (!file) return
+                const fd = new FormData()
+                fd.append('file', file)
+                const res = await fetch('/api/upload-blog-image', { method: 'POST', body: fd })
+                const json = await res.json()
+                if (!res.ok) { alert(json.error || 'آپلود ناموفق بود'); return }
+                editor?.chain().focus().setImage({ src: json.url, alt: file.name }).run()
+              }
+              input.click()
+            }}>افزودن تصویر</button>
+            <button type="button" className="px-3 py-1 bg-gray-700 text-white rounded" onClick={() => {
+              const url = prompt('آدرس ویدئوی یوتیوب:') || ''
+              if (!url) return
+              editor?.chain().focus().setYoutubeVideo({ src: url, width: 640, height: 360 }).run()
+            }}>افزودن ویدئو</button>
+          </div>
+          <div className="bg-gray-700 border border-gray-600 rounded-lg text-white">
+            <EditorContent editor={editor} className="prose prose-invert max-w-none p-4" />
+          </div>
         </div>
         
         {/* Message for user */}
