@@ -17,7 +17,8 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 const YOUR_WEBSITE_URL = 'https://muzikchi.ir';
 
 // نام جداول را از env قابل تنظیم می‌کنیم تا با اسامی جداول موجود همخوانی داشته باشد
-const POSTS_TABLE = process.env.NEXT_PUBLIC_SUPABASE_POSTS_TABLE || 'posts';
+// طبق استفاده‌های دیگر پروژه، جدول پست‌ها: blog_posts و جدول کاربران/پروفایل‌ها: profiles
+const POSTS_TABLE = process.env.NEXT_PUBLIC_SUPABASE_POSTS_TABLE || 'blog_posts';
 const USERS_TABLE = process.env.NEXT_PUBLIC_SUPABASE_USERS_TABLE || 'profiles';
 
 export default async function sitemap() {
@@ -38,7 +39,7 @@ export default async function sitemap() {
 
     const { data: users, error: usersError } = await supabase
       .from(USERS_TABLE)
-      .select('username');
+      .select('display_name');
 
     if (usersError) {
       console.error('Error fetching users from Supabase:', usersError);
@@ -72,7 +73,7 @@ export default async function sitemap() {
 
     // اضافه کردن URLهای پروفایل کاربران
     const userUrls = (users || []).map(user => ({
-      url: `${YOUR_WEBSITE_URL}/profile/${user.username}`,
+      url: `${YOUR_WEBSITE_URL}/profile/${user.display_name}`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.5,
