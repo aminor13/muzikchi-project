@@ -5,16 +5,24 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase URL or Key environment variables');
+  console.error('Missing Supabase URL or Key environment variables!');
+  // برای جلوگیری از کامپایل ارور در محیط لوکال، از پرتاب خطا صرف نظر می کنیم
+  // اگر متغیرها موجود نباشند، تابع یک آرایه خالی را برمی گرداند
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// مطمئن شوید که اتصال تنها زمانی برقرار می شود که متغیرها موجود باشند
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 // URL اصلی سایت شما
 const YOUR_WEBSITE_URL = 'https://muzikchi.ir';
 
 export default async function sitemap() {
   try {
+    if (!supabase) {
+        console.error('Supabase client is not initialized due to missing environment variables.');
+        return [];
+    }
+
     const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select('slug, updated_at');
