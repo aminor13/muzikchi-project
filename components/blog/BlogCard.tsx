@@ -60,14 +60,14 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
               <span>{post.author.display_name}</span>
             </div>
           )}
-          <span>•</span>
+          {/* <span>•</span>
           <span>{formatDate(post.published_at || post.created_at)}</span>
           {post.reading_time && (
             <>
               <span>•</span>
               <span>{post.reading_time} دقیقه مطالعه</span>
             </>
-          )}
+          )} */}
         </div>
 
         <h2 className={`text-white font-bold mb-3 line-clamp-2 ${
@@ -104,7 +104,7 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
           </Link>
         </div>
 
-        {post.tags && post.tags.length > 0 && (
+        {/* {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
             {post.tags.slice(0, 3).map((tag, index) => (
               <span 
@@ -120,7 +120,7 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
               </span>
             )}
           </div>
-        )}
+        )} */}
       </div>
     </article>
   )

@@ -104,9 +104,9 @@ export default function BlogPage() {
         query = query.or(`title.ilike.%${currentFilters.search}%,excerpt.ilike.%${currentFilters.search}%,content.ilike.%${currentFilters.search}%`)
       }
 
-      if (currentFilters.tags && currentFilters.tags.length > 0) {
-        query = query.overlaps('tags', currentFilters.tags)
-      }
+      // if (currentFilters.tags && currentFilters.tags.length > 0) {
+      //   query = query.overlaps('tags', currentFilters.tags)
+      // }
 
       // Apply sorting
       if (currentFilters.sort_by) {

@@ -232,7 +232,7 @@ export default function BlogPostPage() {
                     </div>
                   )}
                   
-                  <span>•</span>
+                  {/* <span>•</span>
                   <span>{formatDate(post.published_at || post.created_at)}</span>
                   {post.reading_time && (
                     <>
@@ -241,7 +241,7 @@ export default function BlogPostPage() {
                     </>
                   )}
                   <span>•</span>
-                  <span>{post.view_count} بازدید</span>
+                  <span>{post.view_count} بازدید</span> */}
                 </div>
 
                 {/* Title */}
@@ -263,7 +263,7 @@ export default function BlogPostPage() {
                 />
 
                 {/* Tags */}
-                {post.tags && post.tags.length > 0 && (
+                {/* {post.tags && post.tags.length > 0 && (
                   <div className="mt-8 pt-8 border-t border-gray-700">
                     <h3 className="text-lg font-semibold text-white mb-4">برچسب‌ها:</h3>
                     <div className="flex flex-wrap gap-2">
@@ -277,7 +277,7 @@ export default function BlogPostPage() {
                       ))}
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
             </article>
 

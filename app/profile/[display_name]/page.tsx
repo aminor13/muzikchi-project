@@ -892,7 +892,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
               <div className="bg-gray-800 rounded-lg shadow p-6">
                 <h2 className="text-lg font-bold mb-4 text-orange-500">عضویت در گروه‌ها</h2>
                 {!bandMemberships && <p className="text-gray-400">در حال بارگذاری...</p>}
-                {bandMemberships && bandMemberships.length === 0 && <p className="text-gray-400">عضو هیچ گروهی نیست</p>}
+                {/* {bandMemberships && bandMemberships.length === 0 && <p className="text-gray-400">عضو هیچ گروهی نیست</p>} */}
                 {bandMemberships && bandMemberships.length > 0 && (
                   <div className="space-y-4">
                     {bandMemberships.map((membership: any) => (
@@ -934,7 +934,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
               <div className="bg-gray-800 rounded-lg shadow p-6">
                 <h2 className="text-lg font-bold mb-4 text-orange-500">تدریس در آموزشگاه‌ها</h2>
                 {!schoolMemberships && <p className="text-gray-400">در حال بارگذاری...</p>}
-                {schoolMemberships && schoolMemberships.length === 0 && <p className="text-gray-400">در هیچ آموزشگاهی تدریس نمی‌کند</p>}
+                {/* {schoolMemberships && schoolMemberships.length === 0 && <p className="text-gray-400">در هیچ آموزشگاهی تدریس نمی‌کند</p>} */}
                 {schoolMemberships && schoolMemberships.length > 0 && (
                   <div className="space-y-4">
                     {schoolMemberships.map((membership: any) => (
