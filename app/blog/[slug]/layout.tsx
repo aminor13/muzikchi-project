@@ -4,18 +4,20 @@ import { createClient } from '@/utils/supabase/server'
 
 interface LayoutProps {
   children: ReactNode
+  params?: Promise<{ slug: string }>
 }
 
-interface Params {
-  params: { slug: string }
+interface GenerateMetadataProps {
+  params: Promise<{ slug: string }>
 }
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params }: GenerateMetadataProps): Promise<Metadata> {
+  const { slug } = await params
   const supabase = await createClient()
   const { data: post } = await supabase
     .from('blog_posts')
     .select('title, excerpt, featured_image_url, tags')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .eq('status', 'published')
     .maybeSingle()
 
@@ -40,7 +42,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       images: image ? [image] : undefined,
     },
     alternates: {
-      canonical: `/blog/${params.slug}`,
+      canonical: `/blog/${slug}`,
     },
     other: post?.tags && post.tags.length > 0 ? { 'keywords': post.tags.join(', ') } : undefined,
   }
