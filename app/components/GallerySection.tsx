@@ -66,7 +66,13 @@ export default function GallerySection({ gallery }: GallerySectionProps) {
             }
 
             return (
-              <div key={vid.id || idx} className="flex items-center gap-3 bg-gray-900 p-3 rounded-lg hover:bg-gray-700 transition-colors">
+              <a
+                key={vid.id || idx}
+                href={vid.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 bg-gray-900 p-3 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer"
+              >
                 {thumbnail && (
                   <div className="relative w-32 h-20 flex-shrink-0">
                     <img src={thumbnail} alt="" className="w-full h-full object-cover rounded" />
@@ -79,19 +85,14 @@ export default function GallerySection({ gallery }: GallerySectionProps) {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <a 
-                    href={vid.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-white hover:text-orange-500 transition-colors block truncate"
-                  >
+                  <div className="text-white hover:text-orange-500 transition-colors block truncate">
                     {vid.title || 'ویدئو بدون عنوان'}
-                  </a>
+                  </div>
                   <div className="text-sm text-gray-400 truncate mt-1">
                     {youtubeId ? 'YouTube' : aparatId ? 'آپارات' : 'ویدئو'}
                   </div>
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>

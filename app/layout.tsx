@@ -11,12 +11,12 @@ import ErrorBoundary from '@/app/components/ErrorBoundary'
 import BottomNav from '@/components/BottomNav'
 
 export const metadata: Metadata = {
-  title: 'Muzikchi-موزیکچی',
+  title: 'Muzikchi - پلتفرم جستجوی نوازنده، خواننده، گروه و ...',
   description: 'پلتفرم ارتباط موزیسین‌ها و گروه‌های موسیقی',
   icons: {
-    icon: '/icons/music-note.svg',
-    shortcut: '/icons/music-note.svg',
-    apple: '/icons/music-note.svg',
+    icon: '/icons/icon.ico',
+    shortcut: '/icons/icon.ico',
+    apple: '/icons/icon.ico',
   },
 }
 
