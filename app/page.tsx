@@ -62,7 +62,7 @@ export default function Home() {
 
         <Image 
            src="/slogan72-2.png"
-          alt="Slogan of the website"
+          alt="دنبال نوازنده،خواننده، مربی موسیقی، آموزشگاه موسیقی، بند ، ترانه سرا، استودیو، محل تمرین میگردی؟"
           width={600}
           height={193}
           className="mx-auto opacity-0 animate-[fadeIn_1s_ease-out_forwards]"

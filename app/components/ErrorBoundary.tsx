@@ -1,63 +1,46 @@
-'use client'
+"use client"
 
-import React, { useEffect } from 'react'
+import React from "react"
 
-export default function ErrorBoundary({
-  children,
-}: {
+type Props = {
   children: React.ReactNode
-}) {
-  useEffect(() => {
-    // Override fetch for Supabase requests
-    const originalFetch = window.fetch
-    window.fetch = async function(...args) {
-      try {
-        const response = await originalFetch.apply(this, args)
-        // Suppress console errors for Supabase 400 errors
-        if (
-          args[0]?.toString().includes('supabase.co') && 
-          response.status === 400
-        ) {
-          // Create a new response with the same data but status 200
-          const data = await response.clone().json()
-          return new Response(JSON.stringify(data), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          })
-        }
-        return response
-      } catch (error) {
-        if (args[0]?.toString().includes('supabase.co')) {
-          // Return a fake successful response for Supabase errors
-          return new Response(JSON.stringify({ error: 'Handled silently' }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          })
-        }
-        throw error
-      }
-    }
+}
 
-    // Override console.error
-    const originalConsoleError = console.error
-    console.error = function(...args) {
-      // Suppress Supabase auth errors
-      if (
-        args.some(arg => 
-          typeof arg === 'string' && 
-          (arg.includes('supabase.co/auth/v1/token') || arg.includes('400'))
-        )
-      ) {
-        return
-      }
-      originalConsoleError.apply(this, args)
-    }
+type State = {
+  hasError: boolean
+  error?: Error
+}
 
-    return () => {
-      window.fetch = originalFetch
-      console.error = originalConsoleError
-    }
-  }, [])
+export default class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = { hasError: false }
+  }
 
-  return <>{children}</>
-} 
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // فقط لاگ خطاهایی که مربوط به Supabase نیستن
+    if (
+      !(
+        error.message.includes("supabase.co/auth/v1/token") ||
+        error.message.includes("400")
+      )
+    ) {
+      console.error("ErrorBoundary caught an error:", error, errorInfo)
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 bg-red-100 text-red-600 rounded">
+          خطایی رخ داده. لطفاً صفحه را دوباره بارگذاری کنید.
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}

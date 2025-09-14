@@ -28,7 +28,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="fa" dir="rtl">
       <body className={`font-vazir min-h-screen bg-gray-100`}>
-        <ErrorBoundary>
+        {/* <ErrorBoundary> */}
           <UserProvider>
             <Header />
             {children}
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <Toaster />
             <BottomNav />
           </UserProvider>
-        </ErrorBoundary>
+        {/* </ErrorBoundary> */}
       </body>
     </html>
   )

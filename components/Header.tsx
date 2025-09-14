@@ -292,7 +292,7 @@ export default function Header() {
 
                     <Link 
                        href="/messages" 
-                       className="text-white hover:text-orange-500 text-base font-medium "
+                       className="relative block px-4 py-2 text-sm text-white hover:bg-gray-600"
                        onClick={() => setProfileMenuOpen(false)}
                     >
                     ارسال نظر
