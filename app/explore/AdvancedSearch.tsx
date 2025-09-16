@@ -611,42 +611,15 @@ export default function AdvancedSearch() {
           hasMore={hasMore}
           loader={<div className="text-center text-gray-400 py-4">در حال بارگذاری...</div>}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.map((profile: any) => (
               <Link
                 key={profile.id}
                 href={`/profile/${profile.display_name}`}
                 className="block h-full"
               >
-                {/* Mobile list style */}
-                <div className="lg:hidden bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={profile.avatar_url || "/default-avatar.png"}
-                      alt={profile.name || profile.display_name}
-                      className="h-16 w-16 rounded-full object-cover border"
-                    />
-                    <div className="flex-1 text-right">
-                      <div className="text-lg font-semibold text-white">{profile.name || profile.display_name}</div>
-                      <div className="text-sm text-gray-400">{profile.city || ''}{profile.city && profile.province ? '، ' : ''}{profile.province || ''}</div>
-                      <div className="text-sm text-gray-400">{Array.isArray(profile.roles) ? profile.roles.map((r: string) => {
-                        const roleObj = allRoles.find((ar: any) => ar.value === r);
-                        let label = roleObj ? roleObj.label : r;
-                        if ((r === 'musician' || r === 'teacher') && Array.isArray((profile as any).profile_instruments) && (profile as any).profile_instruments.length > 0) {
-                          const firstInst = (profile as any).profile_instruments.find((pi: any) => pi.type === r) || (profile as any).profile_instruments[0];
-                          if (firstInst?.instrument_id) {
-                            const instName = allInstruments.find(i => i.id === firstInst.instrument_id)?.name || firstInst.instrument_id;
-                            label = `${label}${instName ? ` (${instName})` : ''}`;
-                          }
-                        }
-                        return label;
-                      }).join('، ') : ''}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Desktop card style */}
-                <div className="hidden lg:block bg-gray-800 rounded-xl hover:shadow-lg transition border border-gray-700 cursor-pointer hover:border-orange-500">
+                {/* Card style for all viewports */}
+                <div className="bg-gray-800 rounded-xl hover:shadow-lg transition border border-gray-700 cursor-pointer hover:border-orange-500">
                   <div className="w-full relative" style={{ paddingBottom: '100%' }}>
                     <img
                       src={profile.avatar_url || '/default-avatar.png'}
