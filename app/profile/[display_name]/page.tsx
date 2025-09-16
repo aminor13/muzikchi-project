@@ -816,7 +816,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
                 )}
                 {profile.social_links?.youtube?.trim() && (
                   <div><span className="font-bold">یوتیوب:</span> 
-                    <a href={formatUrl(profile.social_links.youtube)} target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline mr-1">{profile.social_links.youtube}</a>
+                    <a href={formatUrl(profile.social_links.youtube)} target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline mr-1">{profile.name || profile.display_name || 'یوتیوب'}</a>
                   </div>
                 )}
                 {profile.website?.trim() && (
