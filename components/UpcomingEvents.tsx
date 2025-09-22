@@ -69,7 +69,15 @@ export default function UpcomingEvents() {
   }
 
   if (!events.length) {
-    return <div className="text-gray-300 text-center py-12">رویدادی ثبت نشده است.</div>
+    return (
+      <div className="flex justify-center py-12">
+        <img
+          src="/no-event.jpg"
+          alt="No events"
+          className="w-72 h-72 object-contain rounded-xl opacity-70"
+        />
+      </div>
+    )
   }
 
   const currentEvent = events[currentIndex]
