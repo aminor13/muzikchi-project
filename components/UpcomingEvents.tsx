@@ -94,56 +94,53 @@ export default function UpcomingEvents() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
             >
-              {/* Container with 16:9 aspect ratio */}
-              <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                <Link href={`/events/${currentEvent.id}`} className="block">
+              {/* Container with 16:9 aspect ratio for the image */}
+              <Link href={`/events/${currentEvent.id}`} className="block">
+                <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
                   {currentEvent.image_url ? (
-                    <>
-                      <img
-                        src={currentEvent.image_url}
-                        alt={currentEvent.title}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                      {/* <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div> */}
-                    </>
+                    <img
+                      src={currentEvent.image_url}
+                      alt={currentEvent.title}
+                      className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
+                    />
                   ) : (
-                    <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gray-800 flex items-center justify-center rounded-t-lg">
                       <span className="text-6xl">🎵</span>
                     </div>
                   )}
+                </div>
+              </Link>
 
-                  {/* Event Information */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <div className="max-w-3xl">
-                      <div className="mb-2 text-orange-500 font-bold text-lg">
-                        {currentEvent.organizer_real_name}
-                      </div>
-                      <h3 className="font-bold text-2xl mb-3">
-                        {currentEvent.title}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-4 text-sm">
-                        <span className="flex items-center gap-2">
-                          <span className="text-lg">📅</span>
-                          <span>{currentEvent.date}</span>
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <span className="text-lg">⏰</span>
-                          <span>{formatTimeToPersian(currentEvent.time)}</span>
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <span className="text-lg">📍</span>
-                          <span>{currentEvent.location}</span>
-                        </span>
-                        {currentEvent.province && currentEvent.city && (
-                          <span className="flex items-center gap-2">
-                            <span className="text-lg">🗺️</span>
-                            <span>{currentEvent.province} - {currentEvent.city}</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
+              {/* Event Information (moved below the image) */}
+              <div className="p-6 bg-gray-900 text-white rounded-b-lg">
+                <div className="max-w-3xl">
+                  <div className="mb-2 text-orange-500 font-bold text-lg">
+                    {currentEvent.organizer_real_name}
                   </div>
-                </Link>
+                  <h3 className="font-bold text-2xl mb-3">
+                    {currentEvent.title}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-4 text-sm">
+                    <span className="flex items-center gap-2">
+                      <span className="text-lg">📅</span>
+                      <span>{currentEvent.date}</span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-lg">⏰</span>
+                      <span>{formatTimeToPersian(currentEvent.time)}</span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-lg">📍</span>
+                      <span>{currentEvent.location}</span>
+                    </span>
+                    {currentEvent.province && currentEvent.city && (
+                      <span className="flex items-center gap-2">
+                        <span className="text-lg">🗺️</span>
+                        <span>{currentEvent.province} - {currentEvent.city}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Controls */}
@@ -172,4 +169,4 @@ export default function UpcomingEvents() {
       </div>
     </div>
   )
-} 
+}
