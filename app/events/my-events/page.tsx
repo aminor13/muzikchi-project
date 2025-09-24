@@ -101,7 +101,7 @@ export default async function MyEventsPage() {
             مشاهده
           </Link>
           <Link
-            href={`../edit-event/${event.id}`}
+            href={`/events/edit-event/${event.id}`}
             className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-gray-700 text-gray-100 rounded-md hover:bg-gray-600 transition-colors"
           >
             ویرایش
