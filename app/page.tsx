@@ -4,6 +4,7 @@ import Image from 'next/image'
 import AvatarMosaic from '@/components/AvatarMosaic'
 import QuickSearch from '@/components/QuickSearch'
 import UpcomingEvents from '@/components/UpcomingEvents'
+import ProfileCarousel from '@/components/ProfileCarousel'
 import MusicianIcon from '@/components/icons/MusicianIcon'
 import BandIcon from '@/components/icons/BandIcon'
 import TeacherIcon from '@/components/icons/TeacherIcon'
@@ -84,6 +85,40 @@ export default function Home() {
             
         </div>
       </section>
+
+      {/* Profile Carousels */}
+      <section className="py-16 bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">بیشترین جستجوها</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <ProfileCarousel
+              title="گروه‌های موسیقی"
+              apiEndpoint="/api/band-profiles"
+              emptyMessage="گروه موسیقی‌ای یافت نشد"
+            />
+            <ProfileCarousel
+              title="خواننده‌های خانم"
+              apiEndpoint="/api/female-vocal-profiles"
+              emptyMessage="خواننده خانمی یافت نشد"
+            />
+            <ProfileCarousel
+              title="نوازنده گیتار در تهران"
+              apiEndpoint="/api/tehran-guitar-profiles"
+              emptyMessage="گیتاریست تهرانی یافت نشد"
+            />
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          
+          <Link 
+            href="/explore" 
+            className="mt-20 inline-block bg-white text-orange-600 px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition"
+          >
+            جستجوی پیشرفته
+          </Link>
+        </div>
+      </section>
+
       {/* Upcoming Events */}
       <section className="py-16 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

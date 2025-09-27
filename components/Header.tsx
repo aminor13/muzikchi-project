@@ -182,7 +182,7 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-x-8">
           <Link href="/explore" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/explore') ? 'font-bold' : ''}`}>اکسپلور</Link>
           <Link href="/events" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/events') ? 'font-bold' : ''}`}>رویدادها</Link>
-          <Link href="/blog" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/blog') ? 'font-bold' : ''}`}>بلاگ</Link>
+          {/* <Link href="/blog" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/blog') ? 'font-bold' : ''}`}>بلاگ</Link> */}
           <Link href="/about" className={`text-white hover:text-orange-500 text-base font-medium ${isActive('/about') ? 'font-bold' : ''}`}>درباره موزیکچی</Link>
           {isAdmin && (
             <>
