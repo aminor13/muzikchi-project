@@ -11,7 +11,7 @@ import ErrorBoundary from '@/app/components/ErrorBoundary'
 import BottomNav from '@/components/BottomNav'
 
 export const metadata: Metadata = {
-  title: 'Muzikchi - پلتفرم جستجوی نوازنده، خواننده، گروه و ...',
+  title: 'موزیکچی - پلتفرم جستجوی نوازنده، خواننده، گروه و ...',
   description: 'پلتفرم ارتباط موزیسین‌ها و گروه‌های موسیقی',
   icons: {
     icon: '/icons/icon.ico',

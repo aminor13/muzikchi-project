@@ -314,7 +314,7 @@ export default function Header() {
             </div>
           </>
           ) : (
-                 <Link href="/login" className="text-white hover:text-orange-500 text-base font-medium">ورود</Link>
+                 <Link href="/login" className="text-white hover:text-orange-500 text-base font-medium">ورود/ثبت نام</Link>
               )}
         </div>
 
@@ -338,7 +338,7 @@ export default function Header() {
           <div className="md:hidden bg-gray-800 px-4 pb-4 flex flex-col gap-4 animate-fade-in-down">
               <Link href="/explore" className="text-white hover:text-orange-500 text-base font-medium" onClick={() => setMenuOpen(false)}>اکسپلور</Link>
               <Link href="/events" className="text-white hover:text-orange-500 text-base font-medium" onClick={() => setMenuOpen(false)}>رویدادها</Link>
-              <Link href="/blog" className="text-white hover:text-orange-500 text-base font-medium" onClick={() => setMenuOpen(false)}>بلاگ</Link>
+              {/* <Link href="/blog" className="text-white hover:text-orange-500 text-base font-medium" onClick={() => setMenuOpen(false)}>بلاگ</Link> */}
               <Link href="/about" className="text-white hover:text-orange-500 text-base font-medium" onClick={() => setMenuOpen(false)}>درباره موزیکچی</Link>
               
               {isAdmin && (
