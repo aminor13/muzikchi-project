@@ -18,9 +18,12 @@ interface Event {
   city?: string;
 }
 
+// تعداد آیتم‌هایی که همزمان نمایش داده می‌شوند
+const ITEMS_PER_SLIDE = 3;
+
 export default function UpcomingEvents() {
   const [events, setEvents] = useState<Event[]>([])
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState(0) 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -48,8 +51,10 @@ export default function UpcomingEvents() {
   useEffect(() => {
     if (events.length === 0) return
     
+    const maxSlides = Math.ceil(events.length / ITEMS_PER_SLIDE);
+
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % events.length)
+      setCurrentIndex((prev) => (prev + 1) % maxSlides)
     }, 6000)
 
     return () => clearInterval(timer)
@@ -80,11 +85,14 @@ export default function UpcomingEvents() {
     )
   }
 
-  const currentEvent = events[currentIndex]
+  const startIndex = currentIndex * ITEMS_PER_SLIDE;
+  const currentEvents = events.slice(startIndex, startIndex + ITEMS_PER_SLIDE);
 
+  const maxSlides = Math.ceil(events.length / ITEMS_PER_SLIDE);
+  
   return (
     <div className="w-full">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4"> 
         <div className="relative bg-gray-800 rounded-lg overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
@@ -94,59 +102,68 @@ export default function UpcomingEvents() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
             >
-              {/* Container with 16:9 aspect ratio for the image */}
-              <Link href={`/events/${currentEvent.id}`} className="block">
-                <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                  {currentEvent.image_url ? (
-                    <img
-                      src={currentEvent.image_url}
-                      alt={currentEvent.title}
-                      className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gray-800 flex items-center justify-center rounded-t-lg">
-                      <span className="text-6xl">🎵</span>
-                    </div>
-                  )}
-                </div>
-              </Link>
+              {/* تغییر: اضافه شدن فاصله (gap-6) و padding داخلی (p-6) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 **gap-6 p-6**">
+                {currentEvents.map((currentEvent) => (
+                  // تغییر: استایل‌دهی کارت مجزا و حذف کلاس‌های border
+                  <div key={currentEvent.id} className="**bg-gray-900 rounded-lg shadow-xl overflow-hidden**">
+                    <Link href={`/events/${currentEvent.id}`} className="block">
+                      {/* نسبت ابعاد 4:5 */}
+                      <div className="relative w-full" style={{ aspectRatio: '4/5' }}> 
+                        {currentEvent.image_url ? (
+                          <img
+                            src={currentEvent.image_url}
+                            alt={currentEvent.title}
+                            className="absolute inset-0 w-full h-full object-contain bg-gray-900 rounded-t-lg"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-gray-900 flex items-center justify-center rounded-t-lg">
+                            <span className="text-6xl">🎵</span>
+                          </div>
+                        )}
+                      </div>
+                    </Link>
 
-              {/* Event Information (moved below the image) */}
-              <div className="p-6 bg-gray-900 text-white rounded-b-lg">
-                <div className="max-w-3xl">
-                  <div className="mb-2 text-orange-500 font-bold text-lg">
-                    {currentEvent.organizer_real_name}
+                    {/* Event Information */}
+                    {/* تغییر: حذف bg-gray-900 و border-t */}
+                    <div className="p-4 text-white"> 
+                      <div className="max-w-3xl">
+                        <div className="mb-2 text-orange-500 font-bold text-lg">
+                          {currentEvent.organizer_real_name}
+                        </div>
+                        <h3 className="font-bold text-xl mb-3 truncate">
+                          {currentEvent.title}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-4 text-sm">
+                          <span className="flex items-center gap-2">
+                            <span className="text-lg">📅</span>
+                            <span>{new Date(currentEvent.date).toLocaleDateString('fa-IR')}</span>
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <span className="text-lg">⏰</span>
+                            <span>{formatTimeToPersian(currentEvent.time)}</span>
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <span className="text-lg">📍</span>
+                            <span className="truncate">{currentEvent.location}</span>
+                          </span>
+                          {currentEvent.province && currentEvent.city && (
+                            <span className="flex items-center gap-2">
+                              <span className="text-lg">🗺️</span>
+                              <span>{currentEvent.province} - {currentEvent.city}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="font-bold text-2xl mb-3">
-                    {currentEvent.title}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-4 text-sm">
-                    <span className="flex items-center gap-2">
-                      <span className="text-lg">📅</span>
-                      <span>{currentEvent.date}</span>
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="text-lg">⏰</span>
-                      <span>{formatTimeToPersian(currentEvent.time)}</span>
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="text-lg">📍</span>
-                      <span>{currentEvent.location}</span>
-                    </span>
-                    {currentEvent.province && currentEvent.city && (
-                      <span className="flex items-center gap-2">
-                        <span className="text-lg">🗺️</span>
-                        <span>{currentEvent.province} - {currentEvent.city}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
+                ))}
               </div>
 
               {/* Controls */}
               <div className="p-4 bg-gray-800">
                 <div className="flex justify-center mb-4">
-                  {events.map((_, idx) => (
+                  {[...Array(maxSlides)].map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentIndex(idx)}
