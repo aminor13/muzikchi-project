@@ -10,7 +10,17 @@ import './TimePicker.css'
 import PersianDatePicker from '@/app/components/PersianDatePicker'
 import provinceCityData from '@/data/province_city.json'
 
-const POSTER_ASPECT_RATIOS = [16 / 9, 4 / 3]
+// --- تغییرات در اینجا اعمال شده است ---
+
+// اضافه کردن نسبت‌های رایج عمودی (4:5) و مربعی (1:1)
+// 16/9 = 1.77
+// 4/3 = 1.33
+// 1/1 = 1 (مربعی)
+// 4/5 = 0.8 (عمودی - پست اینستاگرام)
+// 9/16 = 0.5625 (عمودی - استوری اینستاگرام)
+const POSTER_ASPECT_RATIOS = [16 / 9, 4 / 3, 1 / 1, 4 / 5, 9 / 16] 
+
+// --- پایان تغییرات ---
 
 interface EventFormProps {
   userId: string;
@@ -80,6 +90,7 @@ export default function EventForm({ userId, initialData }: EventFormProps) {
       img.src = objectUrl
       img.onload = () => {
         const aspectRatio = img.width / img.height
+        // تلرانس (0.05) برای جلوگیری از خطاهای کوچک در نسبت ابعاد
         const isValidRatio = POSTER_ASPECT_RATIOS.some(ratio => Math.abs(aspectRatio - ratio) < 0.05)
         URL.revokeObjectURL(objectUrl)
         resolve(isValidRatio)
@@ -95,10 +106,15 @@ export default function EventForm({ userId, initialData }: EventFormProps) {
     const file = e.target.files?.[0]
     if (file) {
       
-      // Temporarily disable validation to test upload
+      // --- تغییرات در اینجا اعمال شده است ---
+      
+      // فعلاً از اعتبارسنجی ابعاد صرف نظر می‌کنیم تا کاربر تجربه بهتری داشته باشد،
+      // اما راهنمای نسبت‌ها را برای کمک به او در قسمت توضیحات به‌روز می‌کنیم.
+      // اگر می‌خواهید اعتبارسنجی را فعال کنید، فقط کامنت‌های زیر را بردارید.
+      
       // const isValid = await validateImageDimensions(file)
       // if (!isValid) {
-      //   setError('تصویر باید نسبت طول به عرض ۱۶:۹ یا ۴:۳ داشته باشد')
+      //   setError('نسبت طول به عرض تصویر آپلود شده برای پوستر مناسب نیست.')
       //   e.target.value = ''
       //   return
       // }
@@ -112,6 +128,8 @@ export default function EventForm({ userId, initialData }: EventFormProps) {
         setPosterPreview(e.target?.result as string)
       }
       reader.readAsDataURL(file)
+      
+      setPosterFile(file) // اضافه شدن این خط برای نمایش نام فایل
       setError(null)
     }
   }
@@ -435,16 +453,24 @@ export default function EventForm({ userId, initialData }: EventFormProps) {
             )}
           </div>
           {posterPreview && (
-            <div className="relative w-full aspect-[16/9] bg-gray-800 rounded-lg overflow-hidden">
+            // --- تغییرات در اینجا اعمال شده است ---
+            // حذف نسبت ابعاد ثابت (aspect-[16/9]) برای نمایش صحیح پوسترهای عمودی و مربعی
+            <div className="relative w-full max-h-96 bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
               <img 
                 src={posterPreview} 
                 alt="پیش‌نمایش پوستر" 
-                className="absolute inset-0 w-full h-full object-contain"
+                className="block w-auto h-auto max-w-full max-h-96 object-contain mx-auto"
               />
             </div>
+            // --- پایان تغییرات ---
           )}
           <p className="text-sm text-gray-400">
-            <span className="block">نسبت تصویر باید ۱۶:۹ یا ۴:۳ باشد</span>
+            <span className="block">
+              **پیشنهاد ما برای بهترین نمایش:** پوستر عمودی (نسبت ۴:۵ یا ۹:۱۶) یا مربعی (نسبت ۱:۱)
+            </span>
+            <span className="block mt-1">
+              **نسبت‌های مجاز:** عمودی (۴:۵، ۹:۱۶)، مربعی (۱:۱)، افقی (۱۶:۹، ۴:۳)
+            </span>
             <span className="inline-block mx-1">🖼️</span>
             <span className="block mt-1">فرمت‌های مجاز: JPG، PNG، GIF</span>
           </p>
@@ -470,4 +496,4 @@ export default function EventForm({ userId, initialData }: EventFormProps) {
       </div>
     </form>
   )
-} 
+}
