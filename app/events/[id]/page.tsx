@@ -41,19 +41,32 @@ export default async function EventPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-gray-900 py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-gray-800 rounded-xl shadow-md overflow-hidden">
-          {/* پوستر رویداد */}
+        {/* تغییر اصلی: افزودن flex-col و md:flex-row به کانتینر اصلی 
+          تا در موبایل عمودی و در دسکتاپ افقی شوند.
+        */}
+        <div className="bg-gray-800 rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row">
+          
+          {/* بخش پوستر */}
           {event.poster_url && (
-            <div className="relative h-[400px]">
-              <img
-                src={event.poster_url}
-                alt={event.title}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+            /* تنظیم عرض نصف در دسکتاپ (md:w-1/2). 
+              استفاده از object-contain برای جلوگیری از کراپ شدن تصویر عمودی یا مربعی.
+            */
+            <div className="md:w-1/2 w-full p-4 md:p-8 flex items-center justify-center bg-gray-900 border-b md:border-b-0 md:border-l border-gray-700">
+              <div className="max-w-full max-h-[70vh] flex items-center justify-center">
+                <img
+                  src={event.poster_url}
+                  alt={event.title}
+                  className="w-auto h-auto max-w-full max-h-full object-contain rounded-lg shadow-xl"
+                />
+              </div>
             </div>
           )}
 
-          <div className="p-8">
+          {/* بخش جزئیات */}
+          {/* تنظیم عرض نصف در دسکتاپ در صورت وجود پوستر.
+            اگر پوستر نباشد، عرض کامل (w-full) را می‌گیرد.
+          */}
+          <div className={`p-8 ${event.poster_url ? 'md:w-1/2' : 'w-full'}`}>
             {/* عنوان و اطلاعات اصلی */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-100 mb-4">{event.title}</h1>
@@ -143,4 +156,4 @@ export default async function EventPage({ params }: Props) {
       </div>
     </div>
   )
-} 
+}
