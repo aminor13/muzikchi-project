@@ -466,11 +466,11 @@ export default function EventForm({ userId, initialData }: EventFormProps) {
           )}
           <p className="text-sm text-gray-400">
             <span className="block">
-              **پیشنهاد ما برای بهترین نمایش:** پوستر عمودی (نسبت ۴:۵ یا ۹:۱۶) یا مربعی (نسبت ۱:۱)
+                پیشنهاد ما برای بهترین نمایش پوستر عمودی است 
             </span>
-            <span className="block mt-1">
+            {/* <span className="block mt-1">
               **نسبت‌های مجاز:** عمودی (۴:۵، ۹:۱۶)، مربعی (۱:۱)، افقی (۱۶:۹، ۴:۳)
-            </span>
+            </span> */}
             <span className="inline-block mx-1">🖼️</span>
             <span className="block mt-1">فرمت‌های مجاز: JPG، PNG، GIF</span>
           </p>

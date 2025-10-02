@@ -70,7 +70,8 @@ export default function EventsPageClient({ events }: { events: any[] }) {
           {filteredEvents.map((event) => {
             return (
               <div key={event.id} className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                <div className="relative aspect-[16/9]">
+                {/* تغییر: نسبت ابعاد از 16/9 به 4/5 تغییر کرد */}
+                <div className="relative aspect-[4/5]"> 
                   {event.poster_url ? (
                     <img
                       src={event.poster_url}
