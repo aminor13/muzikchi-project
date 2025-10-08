@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { formatTimeToPersian, formatDateToPersian  } from '@/app/utils/dateUtils'
+import { formatTimeToPersian, formatDateForDisplay  } from '@/app/utils/dateUtils'
 
 
 interface Event {
@@ -138,7 +138,7 @@ export default function UpcomingEvents() {
                         <div className="flex flex-wrap items-center gap-4 text-sm">
                           <span className="flex items-center gap-2">
                             <span className="text-lg">📅</span>
-                            <span>{formatDateToPersian(currentEvent.date)}</span> 
+                            <span>{formatDateForDisplay(currentEvent.date)}</span> 
                           </span>
                           <span className="flex items-center gap-2">
                             <span className="text-lg">⏰</span>
