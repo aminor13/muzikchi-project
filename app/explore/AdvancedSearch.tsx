@@ -286,6 +286,7 @@ const FilterForm = React.memo((props: FilterFormProps) => {
         </div>
     );
 });
+FilterForm.displayName = 'FilterForm'; 
 // -------------------------------------------------------------
 
 
