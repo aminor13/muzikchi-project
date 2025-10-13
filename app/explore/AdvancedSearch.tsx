@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useRef, useMemo } from "react"
 import provinceCityData from "@/data/province_city.json";
 import roleData from "@/data/category_role.json";
 import { createClient, retryRequest } from "@/utils/supabase/client";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation"; 
 import instrumentGroups from '@/data/instruments.js';
 import Link from "next/link";
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -19,6 +19,32 @@ const GENDERS = [
   { value: "female", label: "زن" },
   { value: "mixed", label: "مختلط" },
 ];
+
+// -----------------------------------------------------------------
+// کامپوننت مدیریت تگ Canonical در سمت مشتری
+// -----------------------------------------------------------------
+
+interface CanonicalLinkProps {
+    href: string;
+}
+
+const CanonicalLink: React.FC<CanonicalLinkProps> = ({ href }) => {
+    useEffect(() => {
+        let canonicalTag = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+
+        if (!canonicalTag) {
+            canonicalTag = document.createElement('link');
+            canonicalTag.setAttribute('rel', 'canonical');
+            document.head.appendChild(canonicalTag);
+        }
+
+        const fullCanonicalUrl = `${window.location.origin}${href}`;
+        canonicalTag.setAttribute('href', fullCanonicalUrl);
+        
+    }, [href]);
+
+    return null;
+};
 
 
 interface FilterFormProps {
@@ -66,22 +92,19 @@ interface FilterFormProps {
     isMobileFilterOpen: boolean;
     setIsMobileFilterOpen: (b: boolean) => void;
 
-
     isProvinceListOpen: boolean;
     isCityListOpen: boolean;
     isInstrumentListOpen: boolean;
-    
 }
 
-// 👈 کامپوننت FilterForm جدا شده و بهینه شده با React.memo
 const FilterForm = React.memo((props: FilterFormProps) => {
     const {
         isDesktop,
-        province, provinceInput, setProvinceInput, filteredProvinces, provinceRef, handleSelectProvince,
-        city, cityInput, setCityInput, filteredCities, cityRef, handleSelectCity,
-        instrument, instrumentInput, setInstrumentInput, filteredInstruments, instrumentRef, handleSelectInstrument,
+        province, provinceInput, setProvinceInput, filteredProvinces, provinceRef, handleSelectProvince, isProvinceListOpen,
+        city, cityInput, setCityInput, filteredCities, cityRef, handleSelectCity, isCityListOpen,
+        instrument, instrumentInput, setInstrumentInput, filteredInstruments, instrumentRef, handleSelectInstrument, isInstrumentListOpen,
         role, setRole, category, setCategory, gender, setGender, readyForCooperate, setReadyForCooperate, lookingForMusician, setLookingForMusician, name, setName,
-        allRoles, handleApplyFilters, isMobileFilterOpen, setIsMobileFilterOpen, 
+        allRoles, handleApplyFilters, isMobileFilterOpen, setIsMobileFilterOpen,
     } = props;
 
     return (
@@ -114,7 +137,7 @@ const FilterForm = React.memo((props: FilterFormProps) => {
                             />
                             
                             {/* لیست پیشنهادات استان‌ها */}
-                             {provinceInput.length > 0 && filteredProvinces.length > 0 && props.isProvinceListOpen && ( 
+                            {provinceInput.length > 0 && filteredProvinces.length > 0 && isProvinceListOpen && ( 
                                 <ul className="absolute z-10 w-full mt-1 max-h-40 overflow-y-auto bg-gray-700 rounded-lg shadow-lg border border-gray-600">
                                     {filteredProvinces.map((pName) => (
                                         <li
@@ -141,7 +164,7 @@ const FilterForm = React.memo((props: FilterFormProps) => {
                             />
                             
                             {/* لیست پیشنهادات شهرها */}
-                            {cityInput.length > 0 && filteredCities.length > 0 && province && props.isCityListOpen && ( // 👈 از props.isCityListOpen استفاده کنید
+                            {cityInput.length > 0 && filteredCities.length > 0 && province && isCityListOpen && ( 
                                 <ul className="absolute z-10 w-full mt-1 max-h-40 overflow-y-auto bg-gray-700 rounded-lg shadow-lg border border-gray-600">
                                     {filteredCities.map((cName) => (
                                         <li
@@ -201,7 +224,7 @@ const FilterForm = React.memo((props: FilterFormProps) => {
                         />
                         
                         {/* لیست پیشنهادات سازها */}
-                       {instrumentInput.length > 0 && filteredInstruments.length > 0 && props.isInstrumentListOpen && ( 
+                        {instrumentInput.length > 0 && filteredInstruments.length > 0 && isInstrumentListOpen && ( 
                             <ul className="absolute z-10 w-full mt-1 max-h-40 overflow-y-auto bg-gray-700 rounded-lg shadow-lg border border-gray-600">
                                 {filteredInstruments.map((instObj: any) => (
                                     <li
@@ -286,18 +309,20 @@ const FilterForm = React.memo((props: FilterFormProps) => {
         </div>
     );
 });
+
 FilterForm.displayName = 'FilterForm'; 
+
+
 // -------------------------------------------------------------
 
 
 export default function AdvancedSearch() {
+  const router = useRouter(); 
   const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
-  // --- State های ورودی برای Autosuggest ---
   const [provinceInput, setProvinceInput] = useState("");
   const [cityInput, setCityInput] = useState("");
   const [instrumentInput, setInstrumentInput] = useState("");
-  // ----------------------------------------
   const [role, setRole] = useState("");
   const [gender, setGender] = useState("");
   const [readyForCooperate, setReadyForCooperate] = useState(false);
@@ -309,12 +334,9 @@ export default function AdvancedSearch() {
   const searchParams = useSearchParams();
   const [category, setCategory] = useState("");
   const [name, setName] = useState("");
-  const [isInitialized, setIsInitialized] = useState(false);
   const [instrument, setInstrument] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isInitializingRef = useRef(false);
   const isLoadingRef = useRef(false);
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -322,6 +344,7 @@ export default function AdvancedSearch() {
   const [isProvinceListOpen, setIsProvinceListOpen] = useState(false);
   const [isCityListOpen, setIsCityListOpen] = useState(false);
   const [isInstrumentListOpen, setIsInstrumentListOpen] = useState(false);
+  
   const provinceRef = useRef<HTMLDivElement>(null);
   const cityRef = useRef<HTMLDivElement>(null);
   const instrumentRef = useRef<HTMLDivElement>(null);
@@ -336,8 +359,25 @@ export default function AdvancedSearch() {
 
   const PAGE_SIZE = 12;
 
+  
+  // --- محاسبه Canonical URL بر اساس فیلترهای اصلی (SEO) ---
+  const canonicalUrl = useMemo(() => {
+      const canonicalParams = new URLSearchParams();
+      const basePath = "/explore";
+      
+      // فیلترهای اصلی که قرار است ایندکس شوند: province, city, role, instrument
+      if (province) canonicalParams.set('province', province);
+      if (city) canonicalParams.set('city', city);
+      if (role) canonicalParams.set('role', role);
+      if (instrument) canonicalParams.set('instrument', instrument);
+      
+      const queryString = canonicalParams.toString();
+      
+      // اگر هیچ فیلتر اصلی وجود نداشت، URL پایه را Canonical می‌کنیم
+      return queryString ? `${basePath}?${queryString}` : basePath;
+  }, [province, city, role, instrument]);
 
-  // --- Callbacks برای مدیریت ورودی‌ها (برای جلوگیری از ری‌رندر شدن مداوم) ---
+
   const handleSetProvinceInput = useCallback((value: string) => {
     setProvinceInput(value);
     setIsProvinceListOpen(value.length > 0);
@@ -347,21 +387,20 @@ export default function AdvancedSearch() {
         setCityInput("");
         setIsCityListOpen(false);
     }
-  }, [setProvince, setCity, setCityInput]);
+  }, []);
   
   const handleSetCityInput = useCallback((value: string) => {
     setCityInput(value);
     setIsCityListOpen(value.length > 0);
     if (value === "") setCity("");
-  }, [setCity]);
+  }, []);
   
   const handleSetInstrumentInput = useCallback((value: string) => {
     setInstrumentInput(value);
     setIsInstrumentListOpen(value.length > 0);
     if (value === "") setInstrument("");
-  }, [setInstrument]);
+  }, []);
   
-  // --- Callbacks برای انتخاب آیتم از لیست پیشنهادی ---
   const handleSelectProvince = useCallback((pName: string) => {
     setProvince(pName);
     setProvinceInput(pName);
@@ -382,7 +421,6 @@ export default function AdvancedSearch() {
     setIsInstrumentListOpen(false);
   }, []);
   
-  // --- منطق فیلترینگ (با استفاده از useMemo برای عملکرد بهتر) ---
   const normalizedProvinceInput = normalizeText(provinceInput);
   const normalizedCityInput = normalizeText(cityInput);
   const normalizedInstrumentInput = normalizeText(instrumentInput);
@@ -404,7 +442,7 @@ export default function AdvancedSearch() {
   ), [normalizedInstrumentInput, allInstruments]);
 
 
-  const fetchProfiles = async (pageNum = 1, append = false, initialFilters?: any) => {
+  const fetchProfiles = async (pageNum = 1, append = false, currentFilters?: any) => {
     
     if (isLoadingRef.current) {
       return;
@@ -429,31 +467,7 @@ export default function AdvancedSearch() {
       
       const executeQuery = async () => {
         
-        let query = supabase
-          .from("profiles")
-          .select(
-            instrument
-              ? "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician, profile_instruments!inner(instrument_id, type)"
-              : "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician, profile_instruments(instrument_id, type)"
-          )
-          .eq('is_complete', true)
-          .not('avatar_url', 'is', null)
-          .neq('avatar_url', '');
-        
-        query = query.order('updated_at', { ascending: false }).order('display_name', { ascending: true });
-
-        const { count: totalCount, error: countError } = await supabase
-          .from("profiles")
-          .select("*", { count: "exact", head: true })
-          .eq('is_complete', true);
-        
-        
-        if (countError) {
-          console.error('Count query failed:', countError);
-          throw new Error('خطا در دریافت تعداد پروفایل‌ها');
-        }
-        
-        const filters = initialFilters || {
+        const filters = currentFilters || {
           name,
           province,
           city,
@@ -465,8 +479,20 @@ export default function AdvancedSearch() {
           lookingForMusician
         };
         
+        let query = supabase
+          .from("profiles")
+          .select(
+            filters.instrument
+              ? "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician, profile_instruments!inner(instrument_id, type)"
+              : "id, name, display_name, avatar_url, province, city, category, roles, ready_for_cooperate, looking_for_musician, profile_instruments(instrument_id, type)"
+          )
+          .eq('is_complete', true)
+          .not('avatar_url', 'is', null)
+          .neq('avatar_url', '');
+        
+        query = query.order('updated_at', { ascending: false }).order('display_name', { ascending: true });
+        
         if (filters.name) {
-          // 👈 جستجوی پیشوندی (Start With) برای نام
           query = query.or(`name.ilike.${filters.name}%,display_name.ilike.${filters.name}%`);
         }
         if (filters.province) {
@@ -520,7 +546,6 @@ export default function AdvancedSearch() {
         setResults(data || []);
       }
       setHasMore((data?.length || 0) === PAGE_SIZE);
-      setRetryCount(0);
       
     } catch (err) {
       if (timeoutRef.current) {
@@ -538,22 +563,6 @@ export default function AdvancedSearch() {
   };
 
 
-  const clearCacheAndReset = () => {
-    console.log('Clearing cache and resetting...');
-    setResults([]);
-    setError(null);
-    setRetryCount(0);
-    setPage(1);
-    setHasMore(true);
-    isLoadingRef.current = false;
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    const { resetClient } = require('@/utils/supabase/client');
-    resetClient();
-  };
-
   const fetchNext = () => {
     if (!isLoadingRef.current && hasMore) {
       const nextPage = page + 1;
@@ -562,12 +571,32 @@ export default function AdvancedSearch() {
     }
   };
   
-  const handleApplyFilters = () => {
-    setPage(1);
-    fetchProfiles(1, false);
-  };
+  // 👇 اصلاح: استفاده از useCallback و تعریف وابستگی‌ها
+  const handleApplyFilters = useCallback(() => {
+    const params = new URLSearchParams();
+
+    // ساخت کوئری استرینگ بر اساس وضعیت‌های فعلی
+    if (name) params.set('name', name);
+    if (province) params.set('province', province);
+    if (city) params.set('city', city);
+    if (role) params.set('role', role);
+    if (category) params.set('category', category);
+    if (gender) params.set('gender', gender);
+    if (instrument) params.set('instrument', instrument);
+    // برای فیلترهای بولین از '1' استفاده می‌شود
+    if (readyForCooperate) params.set('ready', '1');
+    if (lookingForMusician) params.set('looking', '1');
+
+    // به‌روزرسانی URL
+    router.replace(`/explore?${params.toString()}`);
+  }, [name, province, city, role, category, gender, instrument, readyForCooperate, lookingForMusician, router]);
   
-  const handleClearAll = () => {
+  // 👇 اصلاح: استفاده از useCallback
+  const handleClearAll = useCallback(() => {
+    // 1. پاک کردن URL
+    router.replace('/explore'); 
+    
+    // 2. پاک کردن Stateهای محلی
     setName("");
     setProvince("");
     setCity("");
@@ -581,20 +610,17 @@ export default function AdvancedSearch() {
     setCityInput("");
     setInstrumentInput("");
     
-    setPage(1);
-    fetchProfiles(1, false, {}); 
-  };
+    setIsProvinceListOpen(false);
+    setIsCityListOpen(false);
+    setIsInstrumentListOpen(false);
+  }, [router]);
 
 
+  // useEffect برای همگام‌سازی State با URL و شروع واکشی داده
   useEffect(() => {
-    if (isInitializingRef.current) return;
-    isInitializingRef.current = true;
-
-    const initializeAndFetch = async () => {
+    
+    const initializeAndSync = async () => {
       try {
-        const supabase = createClient();
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
         const provinceParam = searchParams.get("province");
         const cityParam = searchParams.get("city");
         const roleParam = searchParams.get("role");
@@ -606,24 +632,28 @@ export default function AdvancedSearch() {
         const instrumentParam = searchParams.get("instrument");
 
         const filters = {
-          province: provinceParam || "",
-          city: cityParam || "",
-          role: roleParam || "",
-          gender: genderParam || "",
-          category: categoryParam || "",
-          name: nameParam || "",
-          readyForCooperate: readyParam === "1",
-          lookingForMusician: lookingParam === "1",
-          instrument: instrumentParam || ""
+            province: provinceParam || "",
+            city: cityParam || "",
+            role: roleParam || "",
+            gender: genderParam || "",
+            category: categoryParam || "",
+            name: nameParam || "",
+            readyForCooperate: readyParam === "1",
+            lookingForMusician: lookingParam === "1",
+            instrument: instrumentParam || ""
         };
 
+        // ... (تنظیم Stateها) ...
         setProvince(filters.province);
         setCity(filters.city);
         setProvinceInput(filters.province);
         setCityInput(filters.city);
+        
         if (filters.instrument) {
             const instObj = allInstruments.find(i => i.id === filters.instrument);
             setInstrumentInput(instObj ? instObj.name : "");
+        } else {
+            setInstrumentInput("");
         }
         
         setRole(filters.role);
@@ -633,32 +663,33 @@ export default function AdvancedSearch() {
         setReadyForCooperate(filters.readyForCooperate);
         setLookingForMusician(filters.lookingForMusician);
         setInstrument(filters.instrument);
-
-        setIsInitialized(true);
+        
+        setPage(1);
+        
         fetchProfiles(1, false, filters);
+        
       } catch (e) {
-        console.error('Initialization failed:', e);
+        console.error('Initialization/Sync failed:', e);
       }
     };
 
-    initializeAndFetch();
+    initializeAndSync();
 
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      isInitializingRef.current = false;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, [searchParams.toString()]); 
 
-  // --- مدیریت بستن لیست پیشنهادات با کلیک در بیرون (رفع خطای null) ---
+  // --- مدیریت بستن لیست پیشنهادات با کلیک در بیرون ---
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
         const target = event.target as Node;
         
-        // 👈 اطمینان از وجود provinceRef.current
+        // 1. Province Ref Check
         if (provinceRef.current && !provinceRef.current.contains(target)) {
           if (provinceInput && provinceInput !== province) {
             if (province) setProvinceInput(province);
@@ -667,7 +698,7 @@ export default function AdvancedSearch() {
           setIsProvinceListOpen(false);
         }
         
-        // 👈 اطمینان از وجود cityRef.current
+        // 2. City Ref Check
         if (cityRef.current && !cityRef.current.contains(target)) {
           if (cityInput && cityInput !== city) {
             if (city) setCityInput(city);
@@ -676,7 +707,7 @@ export default function AdvancedSearch() {
           setIsCityListOpen(false);
         }
         
-        // 👈 اطمینان از وجود instrumentRef.current
+        // 3. Instrument Ref Check
         if (instrumentRef.current && !instrumentRef.current.contains(target)) {
           if (instrumentInput && instrumentInput !== instrument) {
             if (instrument) {
@@ -694,6 +725,7 @@ export default function AdvancedSearch() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [province, city, instrument, allInstruments, provinceInput, cityInput, instrumentInput]);
 
 
@@ -701,6 +733,9 @@ export default function AdvancedSearch() {
   return (
     <div className="max-w-full lg:max-w-7xl mx-auto px-4"> 
       
+      {/* تزریق تگ Canonical برای سئو */}
+      <CanonicalLink href={canonicalUrl} />
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">اعضاء</h1>
         
@@ -721,12 +756,11 @@ export default function AdvancedSearch() {
         <div 
           className="hidden lg:block lg:w-[300px] h-fit sticky top-[120px] bg-gray-800 rounded-xl shadow-md p-6"
         >
-          {/* 👈 فراخوانی FilterForm */}
           <FilterForm 
             isDesktop={true}
             isProvinceListOpen={isProvinceListOpen} 
             isCityListOpen={isCityListOpen} 
-            isInstrumentListOpen={isInstrumentListOpen}
+            isInstrumentListOpen={isInstrumentListOpen} 
             province={province} setProvince={setProvince} provinceInput={provinceInput} setProvinceInput={handleSetProvinceInput} filteredProvinces={filteredProvinces} provinceRef={provinceRef} handleSelectProvince={handleSelectProvince}
             city={city} setCity={setCity} cityInput={cityInput} setCityInput={handleSetCityInput} filteredCities={filteredCities} cityRef={cityRef} handleSelectCity={handleSelectCity}
             instrument={instrument} setInstrument={setInstrument} instrumentInput={instrumentInput} setInstrumentInput={handleSetInstrumentInput} filteredInstruments={filteredInstruments} instrumentRef={instrumentRef} handleSelectInstrument={handleSelectInstrument}
@@ -744,55 +778,55 @@ export default function AdvancedSearch() {
               {name && (
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   {name}
-                  <button onClick={() => setName("")} className="hover:text-orange-200">×</button>
+                  <button onClick={() => { setName(""); handleApplyFilters(); }} className="hover:text-orange-200">×</button>
                 </span>
               )}
               {province && (
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   {province}
-                  <button onClick={() => { setProvince(""); setCity(""); setProvinceInput(""); setCityInput(""); }} className="hover:text-orange-200">×</button>
+                  <button onClick={() => { setProvince(""); setCity(""); setProvinceInput(""); setCityInput(""); handleApplyFilters(); }} className="hover:text-orange-200">×</button>
                 </span>
               )}
               {city && (
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   {city}
-                  <button onClick={() => { setCity(""); setCityInput(""); }} className="hover:text-orange-200">×</button>
+                  <button onClick={() => { setCity(""); setCityInput(""); handleApplyFilters(); }} className="hover:text-orange-200">×</button>
                 </span>
               )}
               {role && (
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   {allRoles.find(r => r.value === role)?.label}
-                  <button onClick={() => setRole("")} className="hover:text-orange-200">×</button>
+                  <button onClick={() => { setRole(""); handleApplyFilters(); }} className="hover:text-orange-200">×</button>
                 </span>
               )}
               {category === 'band' && (
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   گروه موسیقی
-                  <button onClick={() => setCategory("")} className="hover:text-orange-200">×</button>
+                  <button onClick={() => { setCategory(""); handleApplyFilters(); }} className="hover:text-orange-200">×</button>
                 </span>
               )}
               {gender && (
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   {GENDERS.find(g => g.value === gender)?.label}
-                  <button onClick={() => setGender("")} className="hover:text-orange-200">×</button>
+                  <button onClick={() => { setGender(""); handleApplyFilters(); }} className="hover:text-orange-200">×</button>
                 </span>
               )}
               {readyForCooperate && (
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   آماده همکاری
-                  <button onClick={() => setReadyForCooperate(false)} className="hover:text-orange-200">×</button>
+                  <button onClick={() => { setReadyForCooperate(false); handleApplyFilters(); }} className="hover:text-orange-200">×</button>
                 </span>
               )}
               {lookingForMusician && (
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   پذیرای همکاری
-                  <button onClick={() => setLookingForMusician(false)} className="hover:text-orange-200">×</button>
+                  <button onClick={() => { setLookingForMusician(false); handleApplyFilters(); }} className="hover:text-orange-200">×</button>
                 </span>
               )}
               {instrument && (
                 <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
                   {allInstruments.find(i => i.id === instrument)?.name || instrument}
-                  <button onClick={() => { setInstrument(""); setInstrumentInput(""); }} className="hover:text-orange-200">×</button>
+                  <button onClick={() => { setInstrument(""); setInstrumentInput(""); handleApplyFilters(); }} className="hover:text-orange-200">×</button>
                 </span>
               )}
               <button
@@ -879,7 +913,7 @@ export default function AdvancedSearch() {
         
       </div>
       
-      {/* 3. مودال فیلترها برای موبایل (بدون تغییر) */}
+      {/* 3. مودال فیلترها برای موبایل */}
       <AnimatePresence>
         {isMobileFilterOpen && (
           <div className="fixed inset-0 z-50 bg-gray-900 bg-opacity-95 backdrop-blur-sm flex justify-end">
@@ -899,12 +933,11 @@ export default function AdvancedSearch() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              {/* 👈 فراخوانی FilterForm */}
               <FilterForm 
                 isDesktop={false}
                 isProvinceListOpen={isProvinceListOpen} 
                 isCityListOpen={isCityListOpen} 
-                isInstrumentListOpen={isInstrumentListOpen}
+                isInstrumentListOpen={isInstrumentListOpen} 
                 province={province} setProvince={setProvince} provinceInput={provinceInput} setProvinceInput={handleSetProvinceInput} filteredProvinces={filteredProvinces} provinceRef={provinceRef} handleSelectProvince={handleSelectProvince}
                 city={city} setCity={setCity} cityInput={cityInput} setCityInput={handleSetCityInput} filteredCities={filteredCities} cityRef={cityRef} handleSelectCity={handleSelectCity}
                 instrument={instrument} setInstrument={setInstrument} instrumentInput={instrumentInput} setInstrumentInput={handleSetInstrumentInput} filteredInstruments={filteredInstruments} instrumentRef={instrumentRef} handleSelectInstrument={handleSelectInstrument}

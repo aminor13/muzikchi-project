@@ -40,7 +40,12 @@ export default function ProfileCarousel({ title, apiEndpoint, emptyMessage }: Pr
           throw new Error('Network response was not ok')
         }
         const data = await response.json()
-        setProfiles(data)
+        
+        // --- تغییر اعمال شده: محدود کردن به 4 پروفایل آخر ---
+        const lastFourProfiles = data.slice(-4);
+        setProfiles(lastFourProfiles);
+        // ---------------------------------------------------
+
       } catch (err) {
         console.error('Error fetching profiles:', err)
         setError('خطا در دریافت پروفایل‌ها')
@@ -55,6 +60,7 @@ export default function ProfileCarousel({ title, apiEndpoint, emptyMessage }: Pr
   useEffect(() => {
     if (profiles.length === 0) return
     
+    // Logic is fine, as profiles.length is now at most 4
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % profiles.length)
     }, 4000)

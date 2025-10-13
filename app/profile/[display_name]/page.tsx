@@ -15,6 +15,110 @@ import TeachingRequestButton from '@/app/components/TeachingRequestButton'
 import ImageGalleryModal from '@/app/components/ImageGalleryModal'
 import GallerySection from '@/app/components/GallerySection'
 
+// تعریف ثوابت و توابع کمکی مورد نیاز در سطح ماژول برای استفاده در generateMetadata و کامپوننت
+const roleLabels: Record<string, string> = {
+  musician: 'نوازنده',
+  teacher: 'مدرس',
+  vocalist: 'خواننده',
+  band: 'گروه موسیقی',
+  singer: 'خواننده',
+  songWriter: 'آهنگساز',
+  arranger: 'تنظیم‌کننده',
+  soundEngineer: 'صدابردار',
+  producer: 'تهیه‌کننده',
+  lyricist: 'ترانه‌سرا',
+  photographer: 'عکاس/تصویربردار',
+  lighting: 'نورپرداز',
+  director: 'کارگردان (موزیک ویدئو)',
+  manager: 'مدیر برنامه',
+  school: 'آموزشگاه موسیقی',
+  recordingStudio: 'استودیو ضبط',
+  rehearsalSpace: 'فضای تمرین',
+  venue: 'مکان اجرا',
+  // ... add more as needed
+};
+
+const getCityFa = function(provinceId: string, cityId: string) {
+    const p = provinceCity.find((p: any) => p['province-en'] === provinceId || p['province-fa'] === provinceId);
+    if (!p) return cityId;
+    const c = p.cities.find((c: any) => c['city-en'] === cityId || c['city-fa'] === cityId);
+    return c ? c['city-fa'] : cityId;
+}
+
+const getInstrumentName = function(id: string) {
+    for (const group of instrumentGroups) {
+      
+      // 1. جستجو در آرایه instruments مستقیم (برای گروه ۱، ۲، ۴، ۵، ۶)
+      if (group.instruments && Array.isArray(group.instruments)) {
+        // @ts-ignore
+        const instrument = group.instruments.find((inst) => inst.id === id);
+        if (instrument) {
+          // @ts-ignore
+          return instrument.name; // ⭐️ استفاده از 'name'
+        }
+      }
+
+      // 2. جستجو در زیر گروه‌ها (subgroups) (برای گروه ۳: سازهای زهی)
+      if (group.subgroups && Array.isArray(group.subgroups)) {
+          for (const subgroup of group.subgroups) {
+              if (subgroup.instruments && Array.isArray(subgroup.instruments)) {
+                  // @ts-ignore
+                  const instrument = subgroup.instruments.find((inst) => inst.id === id);
+                  if (instrument) {
+                      // @ts-ignore
+                      return instrument.name; // ⭐️ استفاده از 'name'
+                  }
+              }
+          }
+      }
+    }
+    return ''; // اگر ساز پیدا نشد، رشته خالی برگردانده شود
+}
+
+// تابع کمکی برای ساخت عنوان
+function buildDynamicTitle(profile: any, instruments: { instrument_id: string }[]): string {
+  const name = profile.name || profile.display_name;
+  let prefix = '';
+
+  // بررسی نقش از طریق آرایه roles
+  const isMusicianOrTeacher = profile.roles?.includes('musician') || profile.roles?.includes('teacher');
+  
+  // انتخاب اولین ساز واکشی شده (فقط instrument_id نیاز است)
+  const mainInstrumentId = instruments.length > 0 ? instruments[0].instrument_id : '';
+  const mainInstrument = mainInstrumentId ? getInstrumentName(mainInstrumentId) : '';
+  
+
+  console.log('Instrument ID:', mainInstrumentId);
+  console.log('Translated Instrument Name:', mainInstrument);
+
+
+  // 1. تعیین نقش/عنوان اصلی
+  if (profile.category === 'band') {
+    prefix = roleLabels.band;
+  } else if (profile.category === 'place' && profile.roles?.includes('school')) {
+    prefix = roleLabels.school;
+  } else if (isMusicianOrTeacher && mainInstrument) {
+    // ⭐️ اگر نقش نوازنده/مدرس دارد و ساز هم دارد: نقش + ساز ⭐️
+    // با توجه به لاگ شما ('musician', 'songWriter')، نقش 'musician' انتخاب می‌شود
+    const role = profile.roles?.includes('teacher') ? roleLabels.teacher : roleLabels.musician;
+    
+    // مثال: نوازنده گیتار
+    prefix = `${role} ${mainInstrument}`; 
+  } else if (profile.roles && profile.roles.length > 0) {
+    // اگر ساز نداشت یا نقش دیگری بود: فقط نقش
+    prefix = roleLabels[profile.roles[0]] || profile.roles[0];
+  } else {
+    prefix = 'پروفایل'; // عنوان پیش‌فرض
+  }
+
+  // 2. تعیین شهر
+  const cityFa = profile.city ? getCityFa(profile.province, profile.city) : '';
+  const citySegment = cityFa ? ` در ${cityFa}` : '';
+
+  // 3. ترکیب نهایی
+  return `${prefix}${citySegment} | ${name}`;
+}
+
 export const dynamic = 'force-dynamic'
 
 export default async function ProfilePage({ params }: { params: Promise<{ display_name: string }> }) {
@@ -33,6 +137,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     .eq('display_name', decodedDisplayName)
     .single();
 
+  if (profileError || !profile) {
+    return redirect('/');
+  }
+
   // Get current user session
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -47,11 +155,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     console.error('Profile error:', profileError);
   }
   
-  // Debug: Check if profile exists and has required fields
-  if (!profile) {
-    console.error('Profile not found for display_name:', decodedDisplayName);
-    return <div>Profile not found</div>;
-  }
+  // // Debug: Check if profile exists and has required fields
+  // if (!profile) {
+  //   console.error('Profile not found for display_name:', decodedDisplayName);
+  //   return <div>Profile not found</div>;
+  // }
 
   // Debug: Log profile data for troubleshooting
   console.log('Profile data:', {
@@ -415,27 +523,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
   };
 
   // ابزار کمکی برای نام فارسی سازها
-  const getInstrumentName = function(id: string) {
-    let name = '';
-    for (const group of instrumentGroups) {
-      if (group.instruments) {
-        const found = group.instruments.find(inst => inst.id === id);
-        if (found) return found.name;
-      }
-      if (group.subgroups) {
-        for (const sub of group.subgroups) {
-          const found = sub.instruments.find(inst => inst.id === id);
-          if (found) return found.name;
-        }
-      }
-    }
-    return id;
-  }
+  const getInstrumentNameLocal = getInstrumentName; // Reuse the module-level function
+
   // ابزار کمکی برای نام فارسی استان و شهر
   const getProvinceFa = function(id: string) {
     const p = provinceCity.find((p: any) => p['province-en'] === id || p['province-fa'] === id);
     return p ? p['province-fa'] : id;
   }
+
   const getCityFa = function(provinceId: string, cityId: string) {
     const p = provinceCity.find((p: any) => p['province-en'] === provinceId || p['province-fa'] === provinceId);
     if (!p) return cityId;
@@ -450,8 +545,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
     professional: 'حرفه‌ای'
   };
   // سازها به تفکیک نوازنده و مدرس
-  const musicianInstruments = profile.profile_instruments?.filter((i: any) => i.type === 'musician') || [];
-  const teacherInstruments = profile.profile_instruments?.filter((i: any) => i.type === 'teacher') || [];
+  const instruments = profile.profile_instruments || [];
+  const musicianInstruments = instruments.filter((i: any) => i.type === 'playing');
+  const teacherInstruments = instruments.filter((i: any) => i.type === 'teaching');
 
   // محاسبه سن کاربر
   const age = profile.birth_year ? (1403 - parseInt(profile.birth_year, 10)) : null;
@@ -1246,31 +1342,47 @@ export default async function ProfilePage({ params }: { params: Promise<{ displa
 }
 
 interface MetadataProps {
-  params: {
+  params: Promise<{
     display_name: string
-  }
+  }>
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ display_name: string }> }) {
-  const { display_name } = await params;
+export async function generateMetadata({ params }: MetadataProps) {
+    // ⭐️ رفع خطای Next.js: باید params را await کنید ⭐️
+  const { display_name } = await params; 
   const supabase = await createClient()
   
   try {
-    const { data: profile } = await supabase
+    // 1. واکشی داده‌ها
+    const { data } = await supabase
       .from('profiles')
-      .select('name, display_name, description')
+      .select(`
+        name, 
+        display_name, 
+        description, 
+        roles,
+        province,
+        city,
+        category,
+        profile_instruments:profile_instruments(instrument_id) // ⭐️ فیلد type حذف شد ⭐️
+      `)
       .eq('display_name', display_name)
       .single()
 
-    if (!profile) {
-      return {
-        title: 'پروفایل پیدا نشد | Musicians Directory'
-      }
+    if (!data) {
+        // ...
     }
+    
+    const fetchedData: any = data;
+    const { profile_instruments, ...profile } = fetchedData;
+
+    // 2. ساخت عنوان پویا
+    const instruments = profile_instruments || []; 
+    const dynamicTitle = buildDynamicTitle(profile, instruments);
 
     return {
       metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-      title: `${profile.name || profile.display_name} | Musicians Directory`,
+      title: dynamicTitle,
       description: profile.description || `پروفایل ${profile.display_name} در Musicians Directory`,
       openGraph: {
         title: profile.name || profile.display_name,
@@ -1278,6 +1390,7 @@ export async function generateMetadata({ params }: { params: Promise<{ display_n
       },
     }
   } catch (error) {
+    console.error('Error in generateMetadata:', error);
     return {
       title: 'Musicians Directory',
     }
