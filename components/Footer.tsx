@@ -47,6 +47,24 @@ export default function Footer() {
             <img src="/icons/instagram_icon.png" alt="Instagram" width={32} height={32} />
           </a>
         </div>
+         
+         <a
+            referrerPolicy="origin"
+            target="_blank"
+            href="https://trustseal.enamad.ir/?id=662749&Code=zX1qh2fAZZ8WYVs3kLc4RNeDXnAvbn5v"
+            className="mt-6 inline-block transition-transform hover:scale-105"
+            aria-label="نماد اعتماد الکترونیکی"
+          >
+          <img
+            referrerPolicy="origin"
+            src="https://trustseal.enamad.ir/logo.aspx?id=662749&Code=zX1qh2fAZZ8WYVs3kLc4RNeDXnAvbn5v"
+            alt="نماد اعتماد الکترونیکی"
+            width={90}
+            height={90}
+            className="rounded-lg shadow-md"
+            style={{ cursor: 'pointer' }}
+           />
+          </a>
 
         <p className="mt-6 text-xs text-gray-400">
           این سایت یه پروژه‌ی شخصیه و پشتش هیچ شرکت یا اسپانسری نیست. کپی رایت نداره و همه امکاناتش کاملا رایگانه.
