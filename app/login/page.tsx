@@ -22,6 +22,11 @@ const signInSilently = async (supabase: any, email: string, password: string) =>
 export default function LoginPage() {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [phone, setPhone] = useState<string>('')
+  const [otp, setOtp] = useState<string>('')
+  const [mode, setMode] = useState<'password' | 'sms'>('password')
+  const [otpStep, setOtpStep] = useState<'enter-phone' | 'enter-code'>('enter-phone')
+  const [resendIn, setResendIn] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
@@ -92,7 +97,7 @@ export default function LoginPage() {
     setError(null)
     
     try {
-      if (!email || !password) {
+      if (mode === 'password' && (!email || !password)) {
         setError('لطفاً ایمیل و رمز عبور را وارد کنید')
         setLoading(false)
         return
@@ -118,6 +123,41 @@ export default function LoginPage() {
         setError('تایید کپچا ناموفق بود. لطفاً دوباره تلاش کنید')
         setLoading(false)
         return
+      }
+
+      if (mode === 'sms') {
+        if (otpStep === 'enter-phone') {
+          const r = await fetch('/api/auth/otp/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone }),
+          })
+          const j = await r.json()
+          if (!r.ok) {
+            setError(j.error || 'ارسال کد ناموفق بود')
+          } else {
+            setOtpStep('enter-code')
+            setResendIn(60)
+          }
+          setLoading(false)
+          return
+        } else {
+          const r = await fetch('/api/auth/otp/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, code: otp }),
+          })
+          const j = await r.json()
+          if (!r.ok) {
+            setError(j.error || 'کد نامعتبر است')
+            setLoading(false)
+            return
+          }
+          // For now, after verification just redirect or refresh; session handling will be added in server after we implement it
+          router.push('/')
+          setLoading(false)
+          return
+        }
       }
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -166,6 +206,13 @@ export default function LoginPage() {
     }
   }
 
+  // countdown for resend
+  useEffect(() => {
+    if (resendIn <= 0) return
+    const t = setInterval(() => setResendIn((s) => (s > 0 ? s - 1 : 0)), 1000)
+    return () => clearInterval(t)
+  }, [resendIn])
+
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault()
     window.location.href = '/forgot-password'
@@ -188,6 +235,12 @@ export default function LoginPage() {
 
         <form className="mt-8 space-y-6 max-w-sm mx-auto" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm">
+            <div className="flex gap-2 mb-4">
+              <button type="button" className={`flex-1 py-2 rounded-md text-sm ${mode==='password'?'bg-orange-600 text-white':'bg-gray-700 text-gray-200'}`} onClick={() => setMode('password')}>ایمیل/رمز</button>
+              <button type="button" className={`flex-1 py-2 rounded-md text-sm ${mode==='sms'?'bg-orange-600 text-white':'bg-gray-700 text-gray-200'}`} onClick={() => {setMode('sms'); setOtpStep('enter-phone')}}>ورود با پیامک</button>
+            </div>
+            {mode === 'password' ? (
+            <>
             <div className="mb-4">
               <label htmlFor="email" className="sr-only">
                 ایمیل
@@ -229,6 +282,33 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+            </>
+            ) : (
+              <>
+                {otpStep === 'enter-phone' ? (
+                  <div className="mb-4">
+                    <label htmlFor="phone" className="sr-only">شماره موبایل</label>
+                    <input id="phone" name="phone" type="tel" required value={phone} onChange={(e)=>setPhone(e.target.value)} className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-100 focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm bg-gray-800 max-w-sm mx-auto" placeholder="09123456789" dir="ltr" />
+                  </div>
+                ) : (
+                  <div className="mb-4">
+                    <label htmlFor="otp" className="sr-only">کد یکبار مصرف</label>
+                    <input id="otp" name="otp" type="text" required value={otp} onChange={(e)=>setOtp(e.target.value)} className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-100 focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm bg-gray-800 max-w-sm mx-auto" placeholder="کد ۶ رقمی" dir="ltr" />
+                    <div className="flex justify-between mt-2 text-sm text-gray-300">
+                      <span>{resendIn>0 ? `امکان ارسال مجدد تا ${resendIn} ثانیه` : ''}</span>
+                      <button type="button" disabled={resendIn>0} className={`underline ${resendIn>0?'opacity-50 cursor-not-allowed':'text-orange-400'}`} onClick={async ()=>{
+                        setLoading(true)
+                        const r = await fetch('/api/auth/otp/send', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ phone }) })
+                        const j = await r.json()
+                        if (!r.ok) setError(j.error||'ارسال مجدد ناموفق بود')
+                        else setResendIn(60)
+                        setLoading(false)
+                      }}>ارسال مجدد کد</button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {error && (
