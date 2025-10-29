@@ -103,30 +103,24 @@ export default function LoginPage() {
         return
       }
 
-      if (!turnstileToken) {
-        setError('لطفاً کپچا را تکمیل کنید')
-        setLoading(false)
-        return
-      }
-
-      const verifyResponse = await fetch('/api/verify-turnstile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: turnstileToken }),
-      })
-
-      const verifyData = await verifyResponse.json()
-
-      if (!verifyData.success) {
-        setError('تایید کپچا ناموفق بود. لطفاً دوباره تلاش کنید')
-        setLoading(false)
-        return
-      }
-
       if (mode === 'sms') {
         if (otpStep === 'enter-phone') {
+          if (!turnstileToken) {
+            setError('لطفاً کپچا را تکمیل کنید')
+            setLoading(false)
+            return
+          }
+          const verifyResponse = await fetch('/api/verify-turnstile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: turnstileToken }),
+          })
+          const verifyData = await verifyResponse.json()
+          if (!verifyData.success) {
+            setError('تایید کپچا ناموفق بود. لطفاً دوباره تلاش کنید')
+            setLoading(false)
+            return
+          }
           const r = await fetch('/api/auth/otp/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -160,6 +154,24 @@ export default function LoginPage() {
           setLoading(false)
           return
         }
+      }
+
+      // Password mode requires captcha
+      if (!turnstileToken) {
+        setError('لطفاً کپچا را تکمیل کنید')
+        setLoading(false)
+        return
+      }
+      const verifyResponse = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: turnstileToken }),
+      })
+      const verifyData = await verifyResponse.json()
+      if (!verifyData.success) {
+        setError('تایید کپچا ناموفق بود. لطفاً دوباره تلاش کنید')
+        setLoading(false)
+        return
       }
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -338,6 +350,7 @@ export default function LoginPage() {
                   size="normal"
                   appearance="always"
                   language="fa"
+                  refreshExpired="auto"
                   onError={(error) => {
                     setError(`خطا در بارگذاری کپچا: ${error}`)
                   }}
