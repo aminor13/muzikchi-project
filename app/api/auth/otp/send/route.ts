@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 
 const SMSIR_API_KEY = process.env.SMSIR_API_KEY as string
 const SMSIR_TEMPLATE_ID = process.env.SMSIR_TEMPLATE_ID as string
@@ -36,17 +36,18 @@ export async function POST(req: Request) {
 
     // rate limit by phone: reuse last non-expired code
     const supabase = await createClient()
+    const admin = await createAdminClient()
 
     const expiresAt = new Date(Date.now() + 2 * 60 * 1000) // 2 minutes
     const code = String(Math.floor(100000 + Math.random() * 900000))
     const codeHash = hashCode(code)
 
-    const { error: insertError } = await supabase
+    const { error: insertError } = await admin
       .from('otp_codes')
       .insert({ phone: normalized, code_hash: codeHash, expires_at: expiresAt })
 
     if (insertError) {
-      return NextResponse.json({ error: 'خطا در ذخیره کد' }, { status: 500 })
+      return NextResponse.json({ error: 'خطا در ذخیره کد', details: insertError.message }, { status: 500 })
     }
 
     // send via sms.ir

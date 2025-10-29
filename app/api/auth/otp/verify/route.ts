@@ -29,8 +29,9 @@ export async function POST(req: Request) {
     if (!phone || !code) return NextResponse.json({ error: 'ورودی نامعتبر' }, { status: 400 })
 
     const supabase = await createClient()
+    const admin = await createAdminClient()
 
-    const { data: rows, error } = await supabase
+    const { data: rows, error } = await admin
       .from('otp_codes')
       .select('*')
       .eq('phone', phone.startsWith('+') ? phone : `+98${phone.replace(/^0/, '')}`)
@@ -45,15 +46,13 @@ export async function POST(req: Request) {
 
     const ok = rows.code_hash === hashCode(String(code))
     if (!ok) {
-      await supabase.from('otp_codes').update({ attempts: rows.attempts + 1 }).eq('id', rows.id)
+      await admin.from('otp_codes').update({ attempts: rows.attempts + 1 }).eq('id', rows.id)
       return NextResponse.json({ error: 'کد اشتباه است' }, { status: 400 })
     }
 
-    await supabase.from('otp_codes').update({ consumed: true }).eq('id', rows.id)
+    await admin.from('otp_codes').update({ consumed: true }).eq('id', rows.id)
 
     // Create or fetch a Supabase user using Service Role
-    const admin = await createAdminClient()
-
     const phoneE164 = rows.phone as string
     const emailAlias = deriveInternalEmail(phoneE164)
     const derivedPassword = deriveInternalPassword(phoneE164)
