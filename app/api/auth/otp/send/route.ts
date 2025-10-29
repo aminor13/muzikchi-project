@@ -82,10 +82,11 @@ export async function POST(req: Request) {
       body: JSON.stringify(payload),
     })
 
-    const responseText = await smsResponse.text()
-    console.log('otp/send -> sms.ir response', { status: smsResponse.status, body: responseText.slice(0, 500) })
-    let smsData: any = {}
-    try { smsData = JSON.parse(responseText) } catch {}
+    const responseText = await smsResponse.text();
+    // TEMP LOG: only read body once
+    console.log('otp/send -> sms.ir response', { status: smsResponse.status, body: responseText.slice(0, 500) });
+    let smsData: any = {};
+    try { smsData = JSON.parse(responseText); } catch {}
 
     if (!smsResponse.ok || smsData?.status === 0) {
       return NextResponse.json({
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
         status: smsResponse.status,
         sms: smsData,
         raw: smsData && Object.keys(smsData).length ? undefined : responseText
-      }, { status: 502 })
+      }, { status: 502 });
     }
 
     return NextResponse.json({ ok: true })
