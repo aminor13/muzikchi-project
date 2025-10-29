@@ -58,7 +58,7 @@ export async function POST(req: Request) {
       templateId: Number(SMSIR_TEMPLATE_ID),
       parameters: [
         {
-          name: 'Code',
+          name: 'CODE',
           value: code,
         },
       ],
@@ -68,16 +68,23 @@ export async function POST(req: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Accept: 'text/plain',
+        Accept: 'application/json',
         'x-api-key': SMSIR_API_KEY,
       },
       body: JSON.stringify(payload),
     })
 
-    const smsData = await smsResponse.json().catch(() => ({}))
+    const responseText = await smsResponse.text()
+    let smsData: any = {}
+    try { smsData = JSON.parse(responseText) } catch {}
 
     if (!smsResponse.ok || smsData?.status === 0) {
-      return NextResponse.json({ error: 'ارسال پیامک ناموفق بود', details: smsData }, { status: 502 })
+      return NextResponse.json({
+        error: 'ارسال پیامک ناموفق بود',
+        status: smsResponse.status,
+        sms: smsData,
+        raw: smsData && Object.keys(smsData).length ? undefined : responseText
+      }, { status: 502 })
     }
 
     return NextResponse.json({ ok: true })
