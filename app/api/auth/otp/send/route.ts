@@ -64,6 +64,14 @@ export async function POST(req: Request) {
       ],
     }
 
+    // TEMP LOG: mask phone and log outbound payload (no secrets)
+    const mask = (msisdn: string) => msisdn.replace(/(\d{3})\d{5}(\d{3})/, '$1*****$2')
+    console.log('otp/send -> payload', {
+      mobile: mask(payload.mobile),
+      templateId: payload.templateId,
+      params: payload.parameters?.map(p => ({ name: p.name, len: String(p.value).length })),
+    })
+
     const smsResponse = await fetch('https://api.sms.ir/v1/send/verify', {
       method: 'POST',
       headers: {
@@ -75,6 +83,7 @@ export async function POST(req: Request) {
     })
 
     const responseText = await smsResponse.text()
+    console.log('otp/send -> sms.ir response', { status: smsResponse.status, body: responseText.slice(0, 500) })
     let smsData: any = {}
     try { smsData = JSON.parse(responseText) } catch {}
 
