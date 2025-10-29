@@ -20,8 +20,12 @@ function hashCode(code: string): string {
 
 export async function POST(req: Request) {
   try {
-    if (!SMSIR_API_KEY || !SMSIR_TEMPLATE_ID || !OTP_SECRET_PEPPER) {
-      return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
+    const missing: string[] = []
+    if (!SMSIR_API_KEY) missing.push('SMSIR_API_KEY')
+    if (!SMSIR_TEMPLATE_ID) missing.push('SMSIR_TEMPLATE_ID')
+    if (!OTP_SECRET_PEPPER) missing.push('OTP_SECRET_PEPPER')
+    if (missing.length > 0) {
+      return NextResponse.json({ error: 'Server not configured', missing }, { status: 500 })
     }
 
     const { phone } = await req.json()
