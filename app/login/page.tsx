@@ -132,7 +132,9 @@ export default function LoginPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone }),
           })
-          const j = await r.json().catch(async () => ({ error: await r.text() }))
+          const txt = await r.text()
+          let j: any = {}
+          try { j = JSON.parse(txt) } catch { j = { error: txt } }
           if (!r.ok) {
             setError(j.error || 'ارسال کد ناموفق بود')
           } else {
@@ -299,7 +301,9 @@ export default function LoginPage() {
                       <button type="button" disabled={resendIn>0} className={`underline ${resendIn>0?'opacity-50 cursor-not-allowed':'text-orange-400'}`} onClick={async ()=>{
                         setLoading(true)
                         const r = await fetch('/api/auth/otp/send', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ phone }) })
-                        const j = await r.json().catch(async () => ({ error: await r.text() }))
+                        const txt = await r.text()
+                        let j: any = {}
+                        try { j = JSON.parse(txt) } catch { j = { error: txt } }
                         if (!r.ok) setError(j.error||'ارسال مجدد ناموفق بود')
                         else setResendIn(60)
                         setLoading(false)
