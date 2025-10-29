@@ -149,7 +149,10 @@ export default function LoginPage() {
             setLoading(false)
             return
           }
-          // For now, after verification just redirect or refresh; session handling will be added in server after we implement it
+          if (j.redirect) {
+            window.location.href = j.redirect
+            return
+          }
           router.push('/')
           setLoading(false)
           return

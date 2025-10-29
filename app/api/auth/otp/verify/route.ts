@@ -59,6 +59,36 @@ export async function POST(req: Request) {
     const emailAlias = deriveInternalEmail(phoneE164)
     const derivedPassword = deriveInternalPassword(phoneE164)
 
+    // If this phone already exists in profiles, do not create a new user
+    const localPhone = phoneE164.replace('+98', '0')
+    const { data: existingProfile } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('phone', localPhone)
+      .maybeSingle()
+
+    if (existingProfile) {
+      // Fetch the auth user by id to get email
+      const existingUserRes = await admin.auth.admin.getUserById(existingProfile.id as string)
+      const existingUser = existingUserRes.user
+      if (!existingUser || !existingUser.email) {
+        return NextResponse.json({ ok: false, reason: 'existing_user_email_not_found' }, { status: 400 })
+      }
+
+      // Generate a magic link for the existing email user to log them in
+      const linkRes = await admin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: existingUser.email,
+        options: {
+          // optional: redirect back to home after magic link consumption
+        },
+      })
+      if (linkRes.error || !linkRes.properties?.action_link) {
+        return NextResponse.json({ ok: false, reason: 'magic_link_failed' }, { status: 500 })
+      }
+      return NextResponse.json({ ok: true, redirect: linkRes.properties.action_link })
+    }
+
     // Try to find user by email alias
     // Admin list users by email not available directly; try sign in; if fails create
     let needCreate = false
