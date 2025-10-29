@@ -9,6 +9,7 @@ import Footer from '@/components/Footer'
 import { Toaster } from '@/components/ui/toaster'
 import ErrorBoundary from '@/app/components/ErrorBoundary'
 import BottomNav from '@/components/BottomNav'
+import AuthHashHandler from '@/components/AuthHashHandler'
 
 export const metadata: Metadata = {
   title: 'موزیکچی - پلتفرم جستجوی نوازنده، خواننده، گروه و ...',
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`font-vazir min-h-screen bg-gray-100`}>
         {/* <ErrorBoundary> */}
           <UserProvider>
+            <AuthHashHandler />
             <Header />
             {children}
             <Footer />
