@@ -1,3 +1,6 @@
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+import crypto from 'crypto'
 import { NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/utils/supabase/server'
 
@@ -19,7 +22,6 @@ function deriveInternalPassword(phoneE164: string): string {
 }
 
 function hashCode(code: string): string {
-  const crypto = require('crypto') as typeof import('crypto')
   return crypto.createHash('sha256').update(`${code}:${OTP_SECRET_PEPPER}`).digest('hex')
 }
 
@@ -83,8 +85,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true })
-  } catch {
-    return NextResponse.json({ error: 'خطای غیرمنتظره' }, { status: 500 })
+  } catch (e: any) {
+    console.error('otp/verify error', e)
+    return NextResponse.json({ error: 'خطای غیرمنتظره', details: e?.message || String(e) }, { status: 500 })
   }
 }
 
