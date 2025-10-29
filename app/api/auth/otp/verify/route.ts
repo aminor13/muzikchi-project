@@ -76,11 +76,12 @@ export async function POST(req: Request) {
       }
 
       // Generate a magic link for the existing email user to log them in
+      const origin = new URL(req.url).origin
       const linkRes = await admin.auth.admin.generateLink({
         type: 'magiclink',
         email: existingUser.email,
         options: {
-          // optional: redirect back to home after magic link consumption
+          redirectTo: `${origin}/auth/callback`,
         },
       })
       if (linkRes.error || !linkRes.data?.properties?.action_link) {
