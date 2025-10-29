@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     if (existingProfile) {
       // Fetch the auth user by id to get email
       const existingUserRes = await admin.auth.admin.getUserById(existingProfile.id as string)
-      const existingUser = existingUserRes.user
+      const existingUser = existingUserRes.data?.user
       if (!existingUser || !existingUser.email) {
         return NextResponse.json({ ok: false, reason: 'existing_user_email_not_found' }, { status: 400 })
       }
@@ -83,10 +83,10 @@ export async function POST(req: Request) {
           // optional: redirect back to home after magic link consumption
         },
       })
-      if (linkRes.error || !linkRes.properties?.action_link) {
+      if (linkRes.error || !linkRes.data?.properties?.action_link) {
         return NextResponse.json({ ok: false, reason: 'magic_link_failed' }, { status: 500 })
       }
-      return NextResponse.json({ ok: true, redirect: linkRes.properties.action_link })
+      return NextResponse.json({ ok: true, redirect: linkRes.data.properties.action_link })
     }
 
     // Try to find user by email alias
