@@ -61,7 +61,7 @@ export default function Footer() {
             alt="نماد اعتماد الکترونیکی"
             width={90}
             height={90}
-            className="rounded-lg shadow-md"
+            className="rounded-lg shadow-md flex items-center"
             style={{ cursor: 'pointer' }}
            />
           </a>
