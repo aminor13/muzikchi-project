@@ -29,7 +29,7 @@
     "jalali-convertor": "^1.1.9",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.511.0",
-    "next": "^15.4.2",
+    "next": "15.4.10",
     "next-sitemap": "^4.2.3",
     "nodemailer": "^7.0.5",
     "react": "^18.3.1",
