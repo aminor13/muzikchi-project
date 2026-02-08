@@ -37,25 +37,44 @@ export default function ResetPasswordPage() {
   const supabase = createClient()
   const searchParams = useSearchParams()
 
-  // اگر با لینک ایمیل آمده باشد و code در URL باشد، سشن را با آن تبادل کن
+  // اگر با لینک ایمیل آمده باشد، سشن را برقرار کن (چه به صورت code param و چه به صورت hash access_token)
   useEffect(() => {
     const code = searchParams.get('code')
-    if (!code) return
-    const doExchange = async () => {
+
+    const establishSession = async () => {
       try {
-        const { error } = await (supabase.auth as any).exchangeCodeForSession(code)
-        if (error) {
-          setMessage({ type: 'error', text: 'اعتبارسنجی لینک بازیابی ناموفق بود. لطفاً دوباره تلاش کنید.' })
+        // 1) اگر code داریم (الگوی {TOKEN})
+        if (code) {
+          const { error } = await (supabase.auth as any).exchangeCodeForSession(code)
+          if (error) {
+            setMessage({ type: 'error', text: 'اعتبارسنجی لینک بازیابی ناموفق بود. لطفاً دوباره تلاش کنید.' })
+            return
+          }
+          // پاکسازی پارامتر از آدرس
+          router.replace('/reset-password')
           return
         }
-        // پاکسازی پارامتر از آدرس
-        router.replace('/reset-password')
+
+        // 2) در غیر این صورت، ممکن است توکن‌ها در hash باشند (#access_token=...&type=recovery)
+        if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+          // supabase با detectSessionInUrl=true خودش hash را پردازش می‌کند
+          // کمی صبر می‌کنیم تا کلاینت سشن را ست کند سپس hash را پاک می‌کنیم
+          setTimeout(async () => {
+            const { data } = await supabase.auth.getSession()
+            if (!data.session) {
+              setMessage({ type: 'error', text: 'عدم موفقیت در برقراری سشن بازیابی. لینک را دوباره باز کنید.' })
+              return
+            }
+            router.replace('/reset-password')
+          }, 300)
+        }
       } catch (err) {
-        console.error('exchangeCodeForSession error', err)
+        console.error('establishSession error', err)
         setMessage({ type: 'error', text: 'خطا در اعتبارسنجی لینک بازیابی' })
       }
     }
-    doExchange()
+
+    establishSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -85,6 +104,30 @@ export default function ResetPasswordPage() {
     }
 
     try {
+      // قبل از تغییر رمز، مطمئن شو سشن وجود دارد
+      let { data } = await supabase.auth.getSession()
+
+      // اگر سشنی وجود ندارد و code هست، تلاش برای تبادل کد
+      if (!data.session) {
+        const code = searchParams.get('code')
+        if (code) {
+          const { error: exchangeError } = await (supabase.auth as any).exchangeCodeForSession(code)
+          if (exchangeError) {
+            setMessage({ type: 'error', text: 'اعتبارسنجی لینک بازیابی ناموفق بود. لطفاً دوباره تلاش کنید.' })
+            setLoading(false)
+            return
+          }
+          data = (await supabase.auth.getSession()).data
+        }
+      }
+
+      // اگر هنوز سشنی نیست، پیام واضح بده
+      if (!data.session) {
+        setMessage({ type: 'error', text: 'سشن احراز هویت یافت نشد. لطفاً لینک ایمیل را مجدداً باز کنید.' })
+        setLoading(false)
+        return
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: password
       })
